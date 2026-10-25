@@ -20,6 +20,10 @@
       {
         "command": "smartSnippet.insert",
         "title": "Вставить сниппет"
+      },
+      {
+        "command": "smartSnippet.delete",
+        "title": "Удалить сниппет"
       }
     ],
     "keybindings": [
@@ -30,6 +34,10 @@
       {
         "command": "smartSnippet.insert",
         "key": "ctrl+alt+i"
+      },
+      {
+        "command": "smartSnippet.delete",
+        "key": "ctrl+alt+d"
       }
     ],
     "configuration": {
