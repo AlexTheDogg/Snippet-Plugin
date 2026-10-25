@@ -1,18 +1,13 @@
-# my-first-extension README
+# Плагин по работе с шаблонами
+ Данный плагин представляет собой расширение, которое позволяет удобно работать с шаблонами кода.
 
-This is the README for your extension "my-first-extension". After writing up a brief description, we recommend including the following sections.
+## Возможности плагина на данный момент:
 
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
+* Позволяет создавать новые шаблоны и переписывать их через диалоговое окно
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
-## Requirements
+## Требования
 
 If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
@@ -37,7 +32,7 @@ Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 
-Initial release of ...
+плагин выполняет базовые функции.
 
 ### 1.0.1
 
