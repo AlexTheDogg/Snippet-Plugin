@@ -4,6 +4,8 @@
 ## Возможности плагина на данный момент:
 
 * Позволяет создавать новые шаблоны и переписывать их через диалоговое окно
+* Можно через горячие клавиши выбрать и вставить шаблон.
+* Плагин поддерживает динамические параметры шаблона.
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
@@ -40,7 +42,7 @@ Users appreciate release notes as you update your extension.
 
 ### 1.1.0
 
-Added features X, Y, and Z.
+Добавлена возможность вставлять сохраненные шаблоны, появился счетчик вставок.
 
 ---
 

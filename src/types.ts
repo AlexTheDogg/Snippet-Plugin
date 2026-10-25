@@ -4,4 +4,6 @@ export interface Snippet {
   language?: string;
   prefix?: string;
   body: string;
+  usageCount?: number;
+  lastUsed?: number;
 }

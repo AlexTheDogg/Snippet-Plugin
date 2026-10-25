@@ -16,12 +16,20 @@
       {
         "command": "smartSnippet.create",
         "title": "Создать новый сниппет"
+      },
+      {
+        "command": "smartSnippet.insert",
+        "title": "Вставить сниппет"
       }
     ],
     "keybindings": [
       {
         "command": "smartSnippet.create",
         "key": "ctrl+alt+n"
+      },
+      {
+        "command": "smartSnippet.insert",
+        "key": "ctrl+alt+i"
       }
     ],
     "configuration": {
@@ -38,7 +46,9 @@
               "description": { "type": "string" },
               "language": { "type": "string" },
               "prefix": { "type": "string" },
-              "body": { "type": "string" }
+              "body": { "type": "string" },
+              "usageCount": { "type": "number" },
+              "lastUsed": { "type": "number" }
             },
             "required": ["name", "body"]
           }
