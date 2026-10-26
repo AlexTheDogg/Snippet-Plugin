@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { addOrUpdateSnippet, findSnippet } from '../storage';
+import { findSnippet, addOrUpdateSnippet } from '../storage';
 
 
 export async function createSnippet(): Promise<void> {
@@ -23,20 +23,39 @@ export async function createSnippet(): Promise<void> {
   const description = await vscode.window.showInputBox({
     prompt: 'Описание (необязательно)'
   });
+  
+  const prefix = await vscode.window.showInputBox({
+    prompt: 'Префикс для вставки (необязательно)'
+  });
+  const edit_doc = vscode.window.activeTextEditor;
+  if (edit_doc){
+    const selection = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '').split('\n');
+    if (!(selection.length === 1 && selection[0] === '')){
+      await addOrUpdateSnippet({
+        name,
+        description: description || undefined,
+        language: edit_doc.document.languageId || undefined,
+        prefix: prefix || undefined,
+        body: selection,
+        usageCount: 0,
 
+      });
+      return;
+    }
+  }
+  
   const language = await vscode.window.showInputBox({
     prompt: 'Язык (необязательно, например: typescript)'
   });
 
-  const prefix = await vscode.window.showInputBox({
-    prompt: 'Префикс для вставки (необязательно)'
-  });
   let initialContent = 
   `//Имя: \${${name}}\n`+
   `//Описание: \${${description}}\n`+
   `//Язык: \${${language}}\n`+
   `//Префикс: \${${prefix}}\n`+
-  '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n';
+  '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
+  '//тело пишите, начиная с 9 строки!!!';
+  
   if (existing){
     initialContent += '\n\n'+
     existing.body.join('\n');
