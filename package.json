@@ -28,6 +28,10 @@
       {
         "command": "smartSnippet.save",
         "title": "Сохранить сниппет"
+      },
+      {
+        "command": "smartSnippet.stats",
+        "title": "Показать статистику"
       }
     ],
     "keybindings": [
@@ -46,6 +50,10 @@
       {
         "command": "smartSnippet.save",
         "key": "ctrl+alt+s"
+      },
+      {
+        "command": "smartSnippet.stats",
+        "key": "ctrl+shift+s"
       }
     ],
     "configuration": {
