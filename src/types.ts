@@ -3,7 +3,7 @@ export interface Snippet {
   description?: string;
   language?: string;
   prefix?: string;
-  body: string;
+  body: string[];
   usageCount?: number;
   lastUsed?: number;
 }

@@ -31,19 +31,35 @@ export async function createSnippet(): Promise<void> {
   const prefix = await vscode.window.showInputBox({
     prompt: 'Префикс для вставки (необязательно)'
   });
-
-  const body = await vscode.window.showInputBox({
-    prompt: 'Тело шаблона (\\n для переноса)'
+  let initialContent = 
+  `//Имя: \${${name}}\n`+
+  `//Описание: \${${description}}\n`+
+  `//Язык: \${${language}}\n`+
+  `//Префикс: \${${prefix}}\n`+
+  '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n';
+  if (existing){
+    initialContent += '\n\n'+
+    existing.body.join('\n');
+  } else{
+    initialContent += '//Введите тело шаблона ниже:\n\n';
+  }
+  
+  const doc = await vscode.workspace.openTextDocument({
+    content: initialContent,
+    language: language || 'plaintext'
   });
-  if (!body) {return;}
 
-  await addOrUpdateSnippet({
-      name,
-      description: description || undefined,
-      language: language || undefined,
-      prefix: prefix || undefined,
-      body: body.replace(/\\n/g, '\n'),
-      usageCount: 0
-    });
+  const editor = await vscode.window.showTextDocument(doc, {
+    preview: false,
+    viewColumn: vscode.ViewColumn.Beside
+  });
+
+  const last = doc.lineCount - 1;
+  const pos = new vscode.Position(last, doc.lineAt(last).text.length);
+  editor.selection = new vscode.Selection(pos, pos);
+  editor.revealRange(new vscode.Range(pos, pos));
+
+  await vscode.commands.executeCommand('setContext', 'smartSnippet.save', true);
+
   
 }

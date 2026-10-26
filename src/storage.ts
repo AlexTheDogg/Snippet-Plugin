@@ -17,7 +17,10 @@ export async function addOrUpdateSnippet(snippet: Snippet): Promise<void> {
   const snippets = getAllSnippets();
   const idx = snippets.findIndex(s => s.name === snippet.name);
   if (idx >= 0) {
-    snippets[idx] = snippet;
+    snippets[idx].description = snippet.description;
+    snippets[idx].language = snippet.language;
+    snippets[idx].prefix = snippet.prefix;
+    snippets[idx].body = snippet.body;
   } else {
     snippets.push(snippet);
   }

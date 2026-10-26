@@ -24,6 +24,10 @@
       {
         "command": "smartSnippet.delete",
         "title": "Удалить сниппет"
+      },
+      {
+        "command": "smartSnippet.save",
+        "title": "Сохранить сниппет"
       }
     ],
     "keybindings": [
@@ -38,6 +42,10 @@
       {
         "command": "smartSnippet.delete",
         "key": "ctrl+alt+d"
+      },
+      {
+        "command": "smartSnippet.save",
+        "key": "ctrl+alt+s"
       }
     ],
     "configuration": {
@@ -54,7 +62,7 @@
               "description": { "type": "string" },
               "language": { "type": "string" },
               "prefix": { "type": "string" },
-              "body": { "type": "string" },
+              "body": { "type": "array", "items": { "type": "string" } },
               "usageCount": { "type": "number" },
               "lastUsed": { "type": "number" }
             },
