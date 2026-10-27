@@ -30,7 +30,7 @@ export async function showStats(): Promise<void> {
 
   const s = snippets.find(x => x.name === picked.label.slice(3));
       if (s) {
-        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite);
+        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite, s.categories);
       }
       return;
 }

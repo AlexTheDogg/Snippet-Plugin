@@ -9,7 +9,7 @@ export async function saveSnippet(): Promise<void> {
     }
 
     const fullText = editor.document.getText();
-    const body = fullText.split('\n').slice(8).join('\n');
+    const body = fullText.split('\n').slice(9).join('\n');
 
     if (!body) {
         vscode.window.showWarningMessage('Тело пустое — шаблон не сохранён');
@@ -23,7 +23,7 @@ export async function saveSnippet(): Promise<void> {
             variableNames[i] = temp[0];
         };
     }
-
+    let categories: string[] = fullText.split('\n')[5].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
     if (variableNames[0] === '') {
         vscode.window.showWarningMessage('имени нет — шаблон не сохранён');
         return;
@@ -35,7 +35,8 @@ export async function saveSnippet(): Promise<void> {
       prefix: variableNames[3] || undefined,
       body: body,
       usageCount : 0,
-      favorite: variableNames[4] === 'true' ? true : false
+      favorite: variableNames[4] === 'true' ? true : false,
+        categories: categories.length > 0 ? categories : undefined
     });
     vscode.window.showInformationMessage(`Шаблон "${variableNames[0]}" сохранён`);
 }

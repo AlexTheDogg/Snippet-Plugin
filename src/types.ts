@@ -7,4 +7,5 @@ export interface Snippet {
   usageCount?: number;
   lastUsed?: number;
   favorite: boolean;
+  categories?: string[];
 }

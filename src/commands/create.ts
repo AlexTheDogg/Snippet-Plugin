@@ -15,6 +15,7 @@ export async function createSnippet(): Promise<void> {
   let language: string | undefined;
   let body: string | undefined;
   let favorite: boolean | undefined;
+  let categories: string[] | undefined;
   const existing = findSnippet(name);
   if (existing) {
     const c = await vscode.window.showWarningMessage(
@@ -26,6 +27,7 @@ export async function createSnippet(): Promise<void> {
     prefix = existing.prefix;
     language = existing.language;
     favorite = existing.favorite;
+    categories = existing.categories;
   }
   else{
     description = await vscode.window.showInputBox({
@@ -67,7 +69,7 @@ export async function createSnippet(): Promise<void> {
     body = existing.body;
   }
   
-  await openTextRedactor(name, description, language, prefix, body, favorite);
+  await openTextRedactor(name, description, language, prefix, body, favorite, categories);
 }
 
 export async function openTextRedactor(name: string,
@@ -75,7 +77,8 @@ export async function openTextRedactor(name: string,
   language: string | undefined,
   prefix: string | undefined,
   body: string | undefined,
-  favorite: boolean | undefined
+  favorite: boolean | undefined,
+  categories: string[] | undefined
 ): Promise<void> {
   const initialcontent = 
   `//Имя: \${${name}}\n`+
@@ -83,8 +86,9 @@ export async function openTextRedactor(name: string,
     `//Язык: \${${language}}\n`+
     `//Префикс: \${${prefix}}\n`+
     `//Избранный: \${${favorite}}\n`+
+    `//Категории: \${${categories?.join(', ')}}\n`+
     '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
-    '//тело пишите, начиная с 9 строки!!!\n\n'+
+    '//тело пишите, начиная с 10 строки!!!\n\n'+
     (body? body : '');
   const doc = await vscode.workspace.openTextDocument({
     content: initialcontent,

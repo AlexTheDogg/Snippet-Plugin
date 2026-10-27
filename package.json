@@ -81,7 +81,11 @@
               "body": { "type": "string" },
               "usageCount": { "type": "number" },
               "lastUsed": { "type": "number" },
-              "favorite": { "type": "boolean" }
+              "favorite": { "type": "boolean" },
+              "categories": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
             },
             "required": ["name", "body"]
           }
