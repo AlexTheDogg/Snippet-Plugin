@@ -9,9 +9,9 @@ export async function saveSnippet(): Promise<void> {
     }
 
     const fullText = editor.document.getText();
-    const body = fullText.split('\n').slice(8);
+    const body = fullText.split('\n').slice(8).join('\n');
 
-    if (body.length === 0) {
+    if (!body) {
         vscode.window.showWarningMessage('Тело пустое — шаблон не сохранён');
         return;
     }

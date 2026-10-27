@@ -4,6 +4,7 @@ import { insertSnippet } from './commands/insert';
 import { deleteSnippet } from './commands/delete';
 import { saveSnippet } from './commands/save';
 import { showStats } from './commands/stats';
+import { listSnippets } from './commands/list';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -20,6 +21,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('smartSnippet.stats', showStats)
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('smartSnippet.list', listSnippets)
   );
 }
 

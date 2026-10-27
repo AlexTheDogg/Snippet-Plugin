@@ -10,7 +10,9 @@ export async function createSnippet(): Promise<void> {
       : null
   });
   if (!name) {return;}
-
+  let description: string | undefined;
+  let prefix: string | undefined;
+  let language: string | undefined;
   const existing = findSnippet(name);
   if (existing) {
     const c = await vscode.window.showWarningMessage(
@@ -18,19 +20,26 @@ export async function createSnippet(): Promise<void> {
       { modal: true }, 'Перезаписать'
     );
     if (c !== 'Перезаписать') {return;}
+    description = existing.description;
+    prefix = existing.prefix;
+    language = existing.language;
   }
+  else{
+    description = await vscode.window.showInputBox({
+      prompt: 'Описание (необязательно)'
+    });
 
-  const description = await vscode.window.showInputBox({
-    prompt: 'Описание (необязательно)'
-  });
+    prefix = await vscode.window.showInputBox({
+      prompt: 'Префикс для вставки (необязательно)'
+    });
+  }
   
-  const prefix = await vscode.window.showInputBox({
-    prompt: 'Префикс для вставки (необязательно)'
-  });
+  
+  
   const edit_doc = vscode.window.activeTextEditor;
   if (edit_doc){
-    const selection = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '').split('\n');
-    if (!(selection.length === 1 && selection[0] === '')){
+    const selection = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '');
+    if (selection){
       await addOrUpdateSnippet({
         name,
         description: description || undefined,
@@ -43,10 +52,11 @@ export async function createSnippet(): Promise<void> {
       return;
     }
   }
-  
-  const language = await vscode.window.showInputBox({
-    prompt: 'Язык (необязательно, например: typescript)'
-  });
+  if(!existing){
+    language = await vscode.window.showInputBox({
+      prompt: 'Язык (необязательно, например: typescript)'
+    });
+  }
 
   let initialContent = 
   `//Имя: \${${name}}\n`+
@@ -55,10 +65,10 @@ export async function createSnippet(): Promise<void> {
   `//Префикс: \${${prefix}}\n`+
   '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
   '//тело пишите, начиная с 9 строки!!!';
-  
+
   if (existing){
     initialContent += '\n\n'+
-    existing.body.join('\n');
+    existing.body;
   } else{
     initialContent += '//Введите тело шаблона ниже:\n\n';
   }

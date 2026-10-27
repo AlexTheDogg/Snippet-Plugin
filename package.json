@@ -32,6 +32,10 @@
       {
         "command": "smartSnippet.stats",
         "title": "Показать статистику"
+      },
+      {
+        "command": "smartSnippet.list",
+        "title": "Поиск шаблонов"
       }
     ],
     "keybindings": [
@@ -54,6 +58,10 @@
       {
         "command": "smartSnippet.stats",
         "key": "ctrl+shift+s"
+      },
+      {
+        "command": "smartSnippet.list",
+        "key": "ctrl+alt+x"
       }
     ],
     "configuration": {
@@ -70,7 +78,7 @@
               "description": { "type": "string" },
               "language": { "type": "string" },
               "prefix": { "type": "string" },
-              "body": { "type": "array", "items": { "type": "string" } },
+              "body": { "type": "string" },
               "usageCount": { "type": "number" },
               "lastUsed": { "type": "number" }
             },

@@ -9,6 +9,7 @@
 * Плагин поддерживает динамические параметры шаблона.
 * удаление шаблонов через горячие клавиши.
 * Просмотр статистики использования шаблонов.
+* Группировка шаблонов по языкам.
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
@@ -62,6 +63,10 @@ Users appreciate release notes as you update your extension.
 ### 1.2.2
 
 добавлена статистика использований шаблонов.
+
+### 1.2.3
+
+добавлена группировка шаблонов по языку.
 
 ---
 

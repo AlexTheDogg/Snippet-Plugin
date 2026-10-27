@@ -22,7 +22,18 @@ export async function showStats(): Promise<void> {
       : 'Ещё не использовался'
   }));
 
-  await vscode.window.showQuickPick(items, {
+  const picked = await vscode.window.showQuickPick(items, {
     placeHolder: `Всего вставок: ${total} · Шаблонов: ${snippets.length}`
   });
+  if (!picked) {return;}
+
+  const s = snippets.find(x => x.name === picked.label.slice(3));
+      if (s) {
+        const doc = await vscode.workspace.openTextDocument({
+          content: s.body,
+          language: s.language || 'plaintext'
+        });
+        await vscode.window.showTextDocument(doc, { preview: true });
+      }
+      return;
 }

@@ -17,7 +17,7 @@ export async function insertSnippet(): Promise<void> {
   const items = snippets.map(s => ({
     label: s.name,
     description: [s.language, s.description].filter(Boolean).join(' · '),
-    detail: s.body[0] + (s.body.length > 1 ? '…' : '')
+    detail: s.body.substring(0,120) + (s.body.length > 120 ? '…' : '')
   }));
 
   const selected = await vscode.window.showQuickPick(items, {
@@ -36,7 +36,7 @@ export async function insertSnippet(): Promise<void> {
     return;
   }
 
-  await editor.insertSnippet(new vscode.SnippetString(snippet.body.join('\n')));
+  await editor.insertSnippet(new vscode.SnippetString(snippet.body));
 
   const updated = getAllSnippets();
   const idx = updated.findIndex(s => s.name === snippet.name);
