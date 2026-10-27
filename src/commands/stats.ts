@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
+import { openTextRedactor } from './create';
 
 export async function showStats(): Promise<void> {
   const snippets = getAllSnippets();
@@ -29,11 +30,7 @@ export async function showStats(): Promise<void> {
 
   const s = snippets.find(x => x.name === picked.label.slice(3));
       if (s) {
-        const doc = await vscode.workspace.openTextDocument({
-          content: s.body,
-          language: s.language || 'plaintext'
-        });
-        await vscode.window.showTextDocument(doc, { preview: true });
+        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite);
       }
       return;
 }

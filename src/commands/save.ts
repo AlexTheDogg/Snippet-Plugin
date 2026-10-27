@@ -16,8 +16,8 @@ export async function saveSnippet(): Promise<void> {
         return;
     }
 
-    let variableNames = ['','','',''];
-    for (let i: number = 0; i <= 3; i++){
+    let variableNames = ['','','','',''];
+    for (let i: number = 0; i <= 4; i++){
         const temp = fullText.split('\n')[i].match(/[^{\\}]+(?=})/g);
         if(temp){
             variableNames[i] = temp[0];
@@ -34,6 +34,8 @@ export async function saveSnippet(): Promise<void> {
       language: variableNames[2] || undefined,
       prefix: variableNames[3] || undefined,
       body: body,
-      usageCount : 0
+      usageCount : 0,
+      favorite: variableNames[4] === 'true' ? true : false
     });
+    vscode.window.showInformationMessage(`Шаблон "${variableNames[0]}" сохранён`);
 }

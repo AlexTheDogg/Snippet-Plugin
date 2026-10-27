@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
+import { openTextRedactor } from './create';
 
 export async function listSnippets(): Promise<void> {
   const snippets = getAllSnippets();
@@ -16,7 +17,8 @@ export async function listSnippets(): Promise<void> {
       label: `$(symbol-method) Язык: ${l}`,
       description: `фильтр`
     })),
-    { label: '$(star) Избранное (топ-5 по использованию)', description: '' }
+    { label: '$(star-empty) Популярное (топ-5 по использованию)', description: '' },
+    { label: '$(star-full) Избранное (все)', description: '' }
   ];
 
   const picked = await vscode.window.showQuickPick(items, {
@@ -29,21 +31,19 @@ export async function listSnippets(): Promise<void> {
   if (picked.label.startsWith('$(symbol-method)')) {
     const lang = picked.label.replace('$(symbol-method) Язык: ', '');
     filtered = snippets.filter(s => s.language === lang);
-  } else if (picked.label.startsWith('$(star)')) {
+  } else if (picked.label.startsWith('$(star-empty)')) {
     filtered = [...snippets]
       .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0))
       .slice(0, 5);
+  } else if (picked.label.startsWith('$(star-full)')) {
+    filtered = snippets.filter(s => s.favorite === true);
   } else if (picked.label.startsWith('$(list-unordered)')) {
     filtered = snippets;
   } else {
     // выбрали конкретный шаблон — показать его содержимое
     const s = snippets.find(x => x.name === picked.label);
     if (s) {
-      const doc = await vscode.workspace.openTextDocument({
-        content: s.body,
-        language: s.language || 'plaintext'
-      });
-      await vscode.window.showTextDocument(doc, { preview: true });
+      await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite);
     }
     return;
   }
@@ -61,11 +61,7 @@ export async function listSnippets(): Promise<void> {
   if (sub) {
     const s = snippets.find(x => x.name === sub.label);
     if (s) {
-      const doc = await vscode.workspace.openTextDocument({
-        content: s.body,
-        language: s.language || 'plaintext'
-      });
-      await vscode.window.showTextDocument(doc, { preview: true });
+      await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite);
     }
   }
 }

@@ -13,6 +13,8 @@ export async function createSnippet(): Promise<void> {
   let description: string | undefined;
   let prefix: string | undefined;
   let language: string | undefined;
+  let body: string | undefined;
+  let favorite: boolean | undefined;
   const existing = findSnippet(name);
   if (existing) {
     const c = await vscode.window.showWarningMessage(
@@ -23,6 +25,7 @@ export async function createSnippet(): Promise<void> {
     description = existing.description;
     prefix = existing.prefix;
     language = existing.language;
+    favorite = existing.favorite;
   }
   else{
     description = await vscode.window.showInputBox({
@@ -32,9 +35,11 @@ export async function createSnippet(): Promise<void> {
     prefix = await vscode.window.showInputBox({
       prompt: 'Префикс для вставки (необязательно)'
     });
+    favorite = await vscode.window.showQuickPick(['Да', 'Нет'], {
+      placeHolder: 'Добавить в избранное?',
+      canPickMany: false
+    }).then(v => v === 'Да');
   }
-  
-  
   
   const edit_doc = vscode.window.activeTextEditor;
   if (edit_doc){
@@ -47,7 +52,7 @@ export async function createSnippet(): Promise<void> {
         prefix: prefix || undefined,
         body: selection,
         usageCount: 0,
-
+        favorite: favorite || false
       });
       return;
     }
@@ -58,23 +63,31 @@ export async function createSnippet(): Promise<void> {
     });
   }
 
-  let initialContent = 
-  `//Имя: \${${name}}\n`+
-  `//Описание: \${${description}}\n`+
-  `//Язык: \${${language}}\n`+
-  `//Префикс: \${${prefix}}\n`+
-  '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
-  '//тело пишите, начиная с 9 строки!!!';
-
   if (existing){
-    initialContent += '\n\n'+
-    existing.body;
-  } else{
-    initialContent += '//Введите тело шаблона ниже:\n\n';
+    body = existing.body;
   }
   
+  await openTextRedactor(name, description, language, prefix, body, favorite);
+}
+
+export async function openTextRedactor(name: string,
+  description: string | undefined,
+  language: string | undefined,
+  prefix: string | undefined,
+  body: string | undefined,
+  favorite: boolean | undefined
+): Promise<void> {
+  const initialcontent = 
+  `//Имя: \${${name}}\n`+
+    `//Описание: \${${description}}\n`+
+    `//Язык: \${${language}}\n`+
+    `//Префикс: \${${prefix}}\n`+
+    `//Избранный: \${${favorite}}\n`+
+    '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
+    '//тело пишите, начиная с 9 строки!!!\n\n'+
+    (body? body : '');
   const doc = await vscode.workspace.openTextDocument({
-    content: initialContent,
+    content: initialcontent,
     language: language || 'plaintext'
   });
 
@@ -89,6 +102,5 @@ export async function createSnippet(): Promise<void> {
   editor.revealRange(new vscode.Range(pos, pos));
 
   await vscode.commands.executeCommand('setContext', 'smartSnippet.save', true);
-
   
 }

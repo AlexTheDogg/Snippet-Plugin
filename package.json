@@ -15,27 +15,27 @@
     "commands": [
       {
         "command": "smartSnippet.create",
-        "title": "Создать новый сниппет"
+        "title": "Create snippet"
       },
       {
         "command": "smartSnippet.insert",
-        "title": "Вставить сниппет"
+        "title": "Insert snippet"
       },
       {
         "command": "smartSnippet.delete",
-        "title": "Удалить сниппет"
+        "title": "Delete snippet"
       },
       {
         "command": "smartSnippet.save",
-        "title": "Сохранить сниппет"
+        "title": "Save snippet"
       },
       {
         "command": "smartSnippet.stats",
-        "title": "Показать статистику"
+        "title": "Show statistics"
       },
       {
         "command": "smartSnippet.list",
-        "title": "Поиск шаблонов"
+        "title": "List snippets"
       }
     ],
     "keybindings": [
@@ -80,7 +80,8 @@
               "prefix": { "type": "string" },
               "body": { "type": "string" },
               "usageCount": { "type": "number" },
-              "lastUsed": { "type": "number" }
+              "lastUsed": { "type": "number" },
+              "favorite": { "type": "boolean" }
             },
             "required": ["name", "body"]
           }

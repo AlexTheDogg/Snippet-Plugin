@@ -6,4 +6,5 @@ export interface Snippet {
   body: string;
   usageCount?: number;
   lastUsed?: number;
+  favorite: boolean;
 }

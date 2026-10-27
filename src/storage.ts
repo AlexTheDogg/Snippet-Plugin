@@ -21,6 +21,7 @@ export async function addOrUpdateSnippet(snippet: Snippet): Promise<void> {
     snippets[idx].language = snippet.language;
     snippets[idx].prefix = snippet.prefix;
     snippets[idx].body = snippet.body;
+    snippets[idx].favorite = snippet.favorite;
   } else {
     snippets.push(snippet);
   }
@@ -37,4 +38,18 @@ export async function removeSnippet(name: string): Promise<boolean> {
 
 export function findSnippet(name: string): Snippet | undefined {
   return getAllSnippets().find(s => s.name === name);
+}
+
+export async function toggleFavorite(name: string): Promise<boolean | undefined> {
+  const snippets = getAllSnippets();
+  const idx = snippets.findIndex(s => s.name === name);
+  if (idx < 0) {return undefined;}
+
+  snippets[idx].favorite = !snippets[idx].favorite;
+  await saveSnippets(snippets);
+  return snippets[idx].favorite;
+}
+
+export function getFavorites(): Snippet[] {
+  return getAllSnippets().filter(s => s.favorite);
 }
