@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { findSnippet, addOrUpdateSnippet } from '../storage';
+import { findSnippet } from '../storage';
 
 
 export async function createSnippet(): Promise<void> {
@@ -28,6 +28,7 @@ export async function createSnippet(): Promise<void> {
     language = existing.language;
     favorite = existing.favorite;
     categories = existing.categories;
+    body = existing.body;
   }
   else{
     description = await vscode.window.showInputBox({
@@ -45,28 +46,13 @@ export async function createSnippet(): Promise<void> {
   
   const edit_doc = vscode.window.activeTextEditor;
   if (edit_doc){
-    const selection = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '');
-    if (selection){
-      await addOrUpdateSnippet({
-        name,
-        description: description || undefined,
-        language: edit_doc.document.languageId || undefined,
-        prefix: prefix || undefined,
-        body: selection,
-        usageCount: 0,
-        favorite: favorite || false
-      });
-      return;
-    }
+    body = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '');
+    language = edit_doc.document.languageId;
   }
-  if(!existing){
+  if(!language){
     language = await vscode.window.showInputBox({
       prompt: 'Язык (необязательно, например: typescript)'
     });
-  }
-
-  if (existing){
-    body = existing.body;
   }
   
   await openTextRedactor(name, description, language, prefix, body, favorite, categories);
@@ -86,7 +72,7 @@ export async function openTextRedactor(name: string,
     `//Язык: \${${language}}\n`+
     `//Префикс: \${${prefix}}\n`+
     `//Избранный: \${${favorite}}\n`+
-    `//Категории: \${${categories?.join(', ')}}\n`+
+    `//Категории: \${${categories? categories.join(', ') : ''}}\n`+
     '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
     '//тело пишите, начиная с 10 строки!!!\n\n'+
     (body? body : '');

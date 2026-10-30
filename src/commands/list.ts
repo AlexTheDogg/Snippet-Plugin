@@ -1,14 +1,9 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
 import { openTextRedactor } from './create';
+import { Snippet } from '../types';
 
-export async function listSnippets(): Promise<void> {
-  const snippets = getAllSnippets();
-  if (snippets.length === 0) {
-    vscode.window.showInformationMessage('Нет шаблонов');
-    return;
-  }
-
+export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | undefined> {
   const languages = [...new Set(snippets.map(s => s.language).filter(Boolean))];
   const categories = [...new Set(snippets.flatMap(s => s.categories ?? []))];
 
@@ -16,18 +11,16 @@ export async function listSnippets(): Promise<void> {
     { label: '$(list-unordered) Все шаблоны', description: `${snippets.length}` },
     ...languages.map(l => ({
       label: `$(symbol-method) Язык: ${l}`,
-      description: `фильтр`
     })),
     { label: '$(star-empty) Популярное (топ-5 по использованию)', description: '' },
     { label: '$(star-full) Избранное (все)', description: '' },
     ...categories.map(l => ({
-      label: `$(folder) Категория: ${l}`,
-      description: `фильтр`
+      label: `$(folder) ${l}`,
     }))
   ];
 
   const picked = await vscode.window.showQuickPick(items, {
-    placeHolder: 'Выберите фильтр или шаблон',
+    placeHolder: 'Выберите фильтр',
     matchOnDescription: true
   });
   if (!picked) {return;}
@@ -45,24 +38,28 @@ export async function listSnippets(): Promise<void> {
   } else if (picked.label.startsWith('$(list-unordered)')) {
     filtered = snippets;
   } else {
-    const category = picked.label.replace('$(folder) Категория: ', '');
+    const category = picked.label.replace('$(folder) ', '');
     filtered = snippets.filter(s => s.categories?.includes(category));
   }
+  return filtered;
+}
 
-  // показать отфильтрованный список
-  const sub = await vscode.window.showQuickPick(
-    filtered.map(s => ({
-      label: s.name,
-      description: [s.language, `${s.usageCount ?? 0}×`, s.description].filter(Boolean).join(' · '),
-      detail: s.body.substring(0, 80)
-    })),
-    { placeHolder: `Найдено: ${filtered.length}`, matchOnDescription: true, matchOnDetail: true }
-  );
-
-  if (sub) {
-    const s = snippets.find(x => x.name === sub.label);
-    if (s) {
-      await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite, s.categories);
+export async function openSnippet(): Promise<void>{
+  const filtered = await filterSnippets(getAllSnippets());
+  if (filtered){
+    const sub = await vscode.window.showQuickPick(
+      filtered.map(s => ({
+        label: s.name,
+        description: [s.language, `${s.usageCount ?? 0}×`, s.description].filter(Boolean).join(' · '),
+        detail: s.body.substring(0, 80)
+      })),
+      { placeHolder: `Найдено: ${filtered.length}`, matchOnDescription: true, matchOnDetail: true }
+    );
+    if (sub) {
+      const s = filtered.find(x => x.name === sub.label);
+      if (s) {
+        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite, s.categories);
+      }
     }
   }
 }

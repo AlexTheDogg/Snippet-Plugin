@@ -36,7 +36,7 @@ export async function saveSnippet(): Promise<void> {
       body: body,
       usageCount : 0,
       favorite: variableNames[4] === 'true' ? true : false,
-        categories: categories.length > 0 ? categories : undefined
+        categories: categories.length > 0 ? categories : undefined,
     });
     vscode.window.showInformationMessage(`Шаблон "${variableNames[0]}" сохранён`);
 }
