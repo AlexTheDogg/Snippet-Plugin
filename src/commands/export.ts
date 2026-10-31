@@ -47,7 +47,7 @@ export async function exportSnippets(): Promise<void> {
     const content = JSON.stringify(converted, null, 2);
     await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
     vscode.window.showInformationMessage(
-      `Экспортировано шаблонов: ${converted.length}`
+      `Экспортировано шаблонов: ${toExport.length}`
     );
   } catch (err) {
     vscode.window.showErrorMessage(`Не удалось записать файл: ${err}`);

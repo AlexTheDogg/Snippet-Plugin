@@ -16,29 +16,32 @@ export async function saveSnippet(): Promise<void> {
         return;
     }
 
-    let variableNames = ['','',''];
-    for (let i: number = 0; i <= 4; i++){
-        const temp = fullText.split('\n')[i].match(/[^{\\}]+(?=})/g);
-        if(temp){
-            variableNames[i] = temp[0];
-        };
-    }
-    let language: string[] = fullText.split('\n')[2].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
-    let prefix: string[] = fullText.split('\n')[3].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
-    let categories: string[] = fullText.split('\n')[5].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
-    if (variableNames[0] === '') {
+    const name: string = fullText.split('\n')[0].match(/[^{\\}]+(?=})/g)?.[0] || '';
+    const description: string = fullText.split('\n')[1].match(/[^{\\}]+(?=})/g)?.[0] || '';
+    const language: string[] = fullText.split('\n')[2].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
+    const prefix: string[] = fullText.split('\n')[3].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
+    const favorite: string = fullText.split('\n')[4].match(/[^{\\}]+(?=})/g)?.[0] || '';
+    const categories: string[] = fullText.split('\n')[5].match(/[^{\\}]+(?=})/g)?.[0].split(',').map(s => s.trim()) || [];
+    if (name === '') {
         vscode.window.showWarningMessage('имени нет — шаблон не сохранён');
         return;
     }
+    const allLangs = await vscode.languages.getLanguages();
+    for (let i = 0; i < language.length; i++){
+        if (!allLangs.includes(language[i].trim().toLowerCase())){
+            vscode.window.showWarningMessage(`язык "${language[i]}" не существует - шаблон не сохранён`);
+            return;
+        }
+    }
     await addOrUpdateSnippet({
-      name: variableNames[0],
-      description: variableNames[1] || undefined,
+      name: name,
+      description: description || undefined,
       language: language.length > 0? language : undefined,
       prefix:  prefix.length > 0? prefix : undefined,
       body: body,
       usageCount : 0,
-      favorite: variableNames[2] === 'true' ? true : false,
+      favorite: favorite === 'true' ? true : false,
         categories: categories.length > 0 ? categories : undefined,
     });
-    vscode.window.showInformationMessage(`Шаблон "${variableNames[0]}" сохранён`);
+    vscode.window.showInformationMessage(`Шаблон "${name}" сохранён`);
 }

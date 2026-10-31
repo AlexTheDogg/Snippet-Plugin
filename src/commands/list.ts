@@ -4,7 +4,7 @@ import { openTextRedactor } from './create';
 import { Snippet } from '../types';
 
 export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | undefined> {
-  const languages = [...new Set(snippets.map(s => s.language ?? []))];
+  const languages = [...new Set(snippets.flatMap(s => s.language ?? []))];
   const categories = [...new Set(snippets.flatMap(s => s.categories ?? []))];
 
   const items: vscode.QuickPickItem[] = [

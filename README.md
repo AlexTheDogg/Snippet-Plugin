@@ -91,11 +91,13 @@ Users appreciate release notes as you update your extension.
 
 Добавлен импорт шаблонов.
 
-
 ### 1.4.1
 
 исправление багов экспорта и импорта.
 
+### 1.4.2
+
+исправление префиксов
 
 ---
 
