@@ -1,0 +1,123 @@
+import * as vscode from 'vscode';
+import { getAllSnippets } from '../storage';
+import { Snippet } from '../types';
+
+const EXPORT_VERSION = 1;
+
+interface ExportFile {
+  version: number;
+  exportedAt: string;
+  snippets: Snippet[];
+}
+
+export async function exportSnippets(): Promise<void> {
+  let snippets = getAllSnippets();
+  if (snippets.length === 0) {
+    vscode.window.showInformationMessage('Нет шаблонов для экспорта');
+    return;
+  }
+
+  const mode = await vscode.window.showQuickPick(
+    [
+      {
+        label: '$(files) Все шаблоны',
+        description: `${snippets.length}`
+      },
+      {
+        label: '$(checklist) Выбрать вручную...',
+        description: 'отметить нужные галочками'
+      }
+    ],
+    { placeHolder: 'Что экспортировать?' }
+  );
+  if (!mode) {return;}
+
+  let toExport: Snippet[] | undefined;
+  if (mode.label === '$(files) Все шаблоны'){
+    toExport = snippets;
+  }
+  else{
+    toExport = await SelectForExport(snippets);
+  }
+
+  if (!toExport || toExport.length === 0) {return;}
+
+  const uri = await vscode.window.showSaveDialog({
+    filters: { 'JSON': ['json'] },
+    defaultUri: vscode.Uri.file('snippets-export.json'),
+    saveLabel: 'Экспортировать'
+  });
+  if (!uri) {return;}
+
+  const payload: ExportFile = {
+    version: EXPORT_VERSION,
+    exportedAt: new Date().toISOString(),
+    snippets: toExport
+  };
+
+  try {
+    const content = JSON.stringify(payload, null, 2);
+    await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
+    vscode.window.showInformationMessage(
+      `Экспортировано шаблонов: ${toExport.length}`
+    );
+  } catch (err) {
+    vscode.window.showErrorMessage(`Не удалось записать файл: ${err}`);
+  }
+}
+
+
+function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
+  return new Promise(resolve => {
+    const quickPick = vscode.window.createQuickPick<
+      vscode.QuickPickItem & { snippet: Snippet }
+    >();
+    quickPick.canSelectMany = true;
+    quickPick.title = 'Экспорт шаблонов';
+    quickPick.placeholder =
+      'Отметьте шаблоны (Enter — экспортировать выделенные)';
+    quickPick.matchOnDescription = true;
+    quickPick.matchOnDetail = true;
+
+    quickPick.items = snippets.map(s => ({
+      label: s.name,
+      description: [
+        s.language,
+        s.favorite ? '$(star-full)' : '',
+        s.description
+      ].filter(Boolean).join(' · '),
+      detail: s.body.substring(0, 80) + (s.body.length > 80 ? '…' : ''),
+      snippet: s
+    }));
+
+    // Кнопка «Выбрать все / Снять всё»
+    let allSelected = false;
+    const toggleAllBtn: vscode.QuickInputButton = {
+      iconPath: new vscode.ThemeIcon('check-all'),
+      tooltip: 'Выбрать все / Снять всё'
+    };
+    quickPick.buttons = [toggleAllBtn];
+
+    quickPick.onDidTriggerButton(btn => {
+      if (btn === toggleAllBtn) {
+        quickPick.selectedItems = allSelected ? [] : quickPick.items;
+        allSelected = !allSelected;
+      }
+    });
+
+    quickPick.onDidAccept(() => {
+      const picked = quickPick.selectedItems.map(i => i.snippet);
+      resolve(picked.length > 0 ? picked : undefined);
+      quickPick.hide();
+    });
+
+    quickPick.onDidHide(() => {
+      // Если accept не сработал (Esc) — resolve(undefined).
+      // Повторный resolve после accept — no-op (Promise уже разрешён).
+      resolve(undefined);
+      quickPick.dispose();
+    });
+
+    quickPick.show();
+  });
+}

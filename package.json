@@ -36,6 +36,10 @@
       {
         "command": "smartSnippet.list",
         "title": "List snippets"
+      },
+      {
+        "command": "smartSnippet.export",
+        "title": "Export snippets"
       }
     ],
     "keybindings": [
@@ -62,6 +66,10 @@
       {
         "command": "smartSnippet.list",
         "key": "ctrl+alt+x"
+      },
+      {
+        "command": "smartSnippet.export",
+        "key": "ctrl+alt+e"
       }
     ],
     "configuration": {
