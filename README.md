@@ -96,6 +96,7 @@ Users appreciate release notes as you update your extension.
 
 исправление багов экспорта и импорта.
 
+
 ---
 
 ## Following extension guidelines

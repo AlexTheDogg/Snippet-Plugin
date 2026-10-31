@@ -92,9 +92,9 @@
             "properties": {
               "name": { "type": "string" },
               "description": { "type": "string" },
-              "language": { "type": "string" },
-              "prefix": { "type": "string" },
-              "body": { "type": "string" },
+              "language": { "type": "array", "items": {"type": "string"} },
+              "prefix": { "type": "array", "items": {"type": "string"} },
+              "body": { "type": "array", "items": {"type": "string"} },
               "usageCount": { "type": "number" },
               "lastUsed": { "type": "number" },
               "favorite": { "type": "boolean" },

@@ -45,7 +45,7 @@ export async function importSnippets(): Promise<void> {
   }
 
   const imported = result.snippets;
-  if (imported.length === 0) {
+  if (!imported || imported.length === 0) {
     vscode.window.showInformationMessage('Файл не содержит сниппетов');
     return;
   }

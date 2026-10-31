@@ -4,7 +4,7 @@ import { openTextRedactor } from './create';
 import { Snippet } from '../types';
 
 export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | undefined> {
-  const languages = [...new Set(snippets.map(s => s.language).filter(Boolean))];
+  const languages = [...new Set(snippets.map(s => s.language ?? []))];
   const categories = [...new Set(snippets.flatMap(s => s.categories ?? []))];
 
   const items: vscode.QuickPickItem[] = [
@@ -28,7 +28,7 @@ export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | u
   let filtered = snippets;
   if (picked.label.startsWith('$(symbol-method)')) {
     const lang = picked.label.replace('$(symbol-method) Язык: ', '');
-    filtered = snippets.filter(s => s.language === lang);
+    filtered = snippets.filter(s => s.language?.includes(lang));
   } else if (picked.label.startsWith('$(star-empty)')) {
     filtered = [...snippets]
       .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0))
@@ -51,7 +51,7 @@ export async function openSnippet(): Promise<void>{
       filtered.map(s => ({
         label: s.name,
         description: [s.language, `${s.usageCount ?? 0}×`, s.description].filter(Boolean).join(' · '),
-        detail: s.body.substring(0, 80)
+        detail: s.body[0] + (s.body.length > 1? '...' : '')
       })),
       { placeHolder: `Найдено: ${filtered.length}`, matchOnDescription: true, matchOnDetail: true }
     );

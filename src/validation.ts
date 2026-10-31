@@ -3,7 +3,7 @@ import { Snippet } from './types';
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
-  snippets: Snippet[];
+  snippets?: Snippet[];
 }
 
 export function validateSnippetArray(data: unknown): ValidationResult {
@@ -45,50 +45,50 @@ export function validateSnippetArray(data: unknown): ValidationResult {
     }
 
     // body: string | string[]
-    let body: string;
+    let body: string[];
     if (typeof v.body === 'string') {
-      body = v.body;
+      body = [v.body];
     } else if (Array.isArray(v.body)) {
       if (!v.body.every(s => typeof s === 'string')) {
         errors.push(`${at}: "body" должен быть строкой или массивом строк`);
         continue;
       }
-      body = (v.body as string[]).join('\n');
+      body = (v.body as string[]);
     } else {
       errors.push(`${at}: "body" должен быть строкой или массивом строк`);
       continue;
     }
 
-    if (!body.trim()) {
+    if (body.length === 0) {
       errors.push(`${at}: пустое тело шаблона ("body")`);
       continue;
     }
 
 
-    let prefix: string | undefined;
+    let prefix: string[] | undefined;
     if (v.prefix !== undefined) {
       if (typeof v.prefix === 'string') {
-        prefix = v.prefix;
+        prefix = [v.prefix];
       } else if (
         Array.isArray(v.prefix) &&
         v.prefix.every(s => typeof s === 'string')
       ) {
-        prefix = (v.prefix as string[])[0];
+        prefix = (v.prefix as string[]);
       } else {
         errors.push(`${at}: "prefix" должен быть строкой или массивом строк`);
         continue;
       }
     }
 
-    let language: string | undefined;
+    let language: string[] | undefined;
     if (v.scope !== undefined) {
       if (typeof v.scope === 'string') {
-        language = v.scope.split(',')[0].trim() || undefined;
+        language = [v.scope];
       } else if (
         Array.isArray(v.scope) &&
         v.scope.every(s => typeof s === 'string')
       ) {
-        language = ((v.scope as string[])[0] ?? '').trim() || undefined;
+        language = (v.scope as string[]);
       } else {
         errors.push(`${at}: "scope" должен быть строкой или массивом строк`);
         continue;

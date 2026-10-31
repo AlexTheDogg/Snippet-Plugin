@@ -47,7 +47,7 @@ export async function exportSnippets(): Promise<void> {
     const content = JSON.stringify(converted, null, 2);
     await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
     vscode.window.showInformationMessage(
-      `Экспортировано шаблонов: ${toExport.length}`
+      `Экспортировано шаблонов: ${converted.length}`
     );
   } catch (err) {
     vscode.window.showErrorMessage(`Не удалось записать файл: ${err}`);
@@ -70,11 +70,11 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
     quickPick.items = snippets.map(s => ({
       label: s.name,
       description: [
-        s.language,
+        s.language?.join(', '),
         s.favorite ? '$(star-full)' : '',
         s.description
       ].filter(Boolean).join(' · '),
-      detail: s.body.substring(0, 80) + (s.body.length > 80 ? '…' : ''),
+      detail: s.body[0] + (s.body.length > 1 ? '…' : ''),
       snippet: s
     }));
 
@@ -112,15 +112,15 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
 
 function toVsCodeSnippetFormat(
   snippets: Snippet[]
-): Record<string, { scope?: string; prefix: string; body: string[]; description?: string; }> {
+): Record<string, { prefix: string; body: string[]; description?: string; scope?: string }> {
   const result: Record<string, any> = {};
 
   for (const snippet of snippets) {
     result[snippet.name] = {
-      ...(snippet.language ? { scope: snippet.language } : {}),
-      prefix: snippet.prefix || snippet.name,
-      body: snippet.body.split('\n'),
-      ...(snippet.description ? { description: snippet.description } : {})
+      prefix: snippet.prefix,
+      body: snippet.body,
+      ...(snippet.description ? { description: snippet.description } : {}),
+      ...(snippet.language ? { scope: snippet.language } : {})
     };
   }
 

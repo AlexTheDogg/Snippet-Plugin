@@ -4,18 +4,16 @@ import { findSnippet } from '../storage';
 
 export async function createSnippet(): Promise<void> {
   const name = await vscode.window.showInputBox({
-    prompt: 'Имя шаблона',
-    validateInput: v => (!v || !/^[a-zA-Z0-9_-]+$/.test(v))
-      ? 'Только буквы, цифры, _ и -'
-      : null
+    prompt: 'Имя шаблона'
   });
   if (!name) {return;}
   let description: string | undefined;
-  let prefix: string | undefined;
-  let language: string | undefined;
-  let body: string | undefined;
+  let prefix: string[] | undefined;
+  let language: string[] | undefined;
+  let body: string[] | undefined;
   let favorite: boolean | undefined;
   let categories: string[] | undefined;
+  let temp: string | undefined;
   const existing = findSnippet(name);
   if (existing) {
     const c = await vscode.window.showWarningMessage(
@@ -35,9 +33,11 @@ export async function createSnippet(): Promise<void> {
       prompt: 'Описание (необязательно)'
     });
 
-    prefix = await vscode.window.showInputBox({
+    temp = await vscode.window.showInputBox({
       prompt: 'Префикс для вставки (необязательно)'
     });
+    if (temp) {prefix = temp.split(', ');}
+
     favorite = await vscode.window.showQuickPick(['Да', 'Нет'], {
       placeHolder: 'Добавить в избранное?',
       canPickMany: false
@@ -46,13 +46,14 @@ export async function createSnippet(): Promise<void> {
   
   const edit_doc = vscode.window.activeTextEditor;
   if (edit_doc){
-    body = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '');
-    language = edit_doc.document.languageId;
+    body = edit_doc.document.getText(edit_doc.selection).replace(/\r/g, '').split('\n');
+    language = [edit_doc.document.languageId];
   }
   if(!language){
-    language = await vscode.window.showInputBox({
+    temp = await vscode.window.showInputBox({
       prompt: 'Язык (необязательно, например: typescript)'
     });
+    if (temp) {language = temp.split(', ');}
   }
   
   await openTextRedactor(name, description, language, prefix, body, favorite, categories);
@@ -60,17 +61,17 @@ export async function createSnippet(): Promise<void> {
 
 export async function openTextRedactor(name: string,
   description: string | undefined,
-  language: string | undefined,
-  prefix: string | undefined,
-  body: string | undefined,
+  language: string[] | undefined,
+  prefix: string[] | undefined,
+  body: string[] | undefined,
   favorite: boolean | undefined,
   categories: string[] | undefined
 ): Promise<void> {
   const initialcontent = 
   `//Имя: \${${name}}\n`+
-    `//Описание: \${${description}}\n`+
-    `//Язык: \${${language}}\n`+
-    `//Префикс: \${${prefix}}\n`+
+    `//Описание: \${${description? description : ''}}\n`+
+    `//Язык: \${${language? language.join(', ') : ''}}\n`+
+    `//Префикс: \${${prefix? prefix.join(', '): ''}}\n`+
     `//Избранный: \${${favorite}}\n`+
     `//Категории: \${${categories? categories.join(', ') : ''}}\n`+
     '//для сохранения используйте комбинацию клавиш Ctrl+Alt+S\n'+
@@ -78,7 +79,7 @@ export async function openTextRedactor(name: string,
     (body? body : '');
   const doc = await vscode.workspace.openTextDocument({
     content: initialcontent,
-    language: language || 'plaintext'
+    language: language? language[0] : 'plaintext'
   });
 
   const editor = await vscode.window.showTextDocument(doc, {

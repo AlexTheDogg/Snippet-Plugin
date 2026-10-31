@@ -43,7 +43,7 @@ export async function insertSnippet(): Promise<void> {
   quickPick.items = filtered.map(s => ({
     label: s.name,
     description: [s.language, s.description].filter(Boolean).join(' · '),
-    detail: s.body.substring(0, 120) + (s.body.length > 120 ? '…' : '')
+    detail: s.body[0] + (s.body.length > 1 ? '…' : '')
   }));
 
   // ── Применение превью ────────────────────────────────────────────
@@ -57,11 +57,10 @@ export async function insertSnippet(): Promise<void> {
       }, { undoStopBefore: false, undoStopAfter: false });
 
       const start = originalSelection.start;
-      const lines = body.split('\n');
-      const endLine = start.line + lines.length - 1;
-      const endChar = lines.length === 1
+      const endLine = start.line + body.length - 1;
+      const endChar = body.length === 1
         ? start.character + body.length
-        : lines[lines.length - 1].length;
+        : body[body.length - 1].length;
 
       currentPreviewRange = new vscode.Range(
         start,
@@ -74,11 +73,10 @@ export async function insertSnippet(): Promise<void> {
         eb.replace(currentPreviewRange!, body);
       }, { undoStopBefore: false, undoStopAfter: false });
 
-      const lines = body.split('\n');
-      const endLine = start.line + lines.length - 1;
-      const endChar = lines.length === 1
+      const endLine = start.line + body.length - 1;
+      const endChar = body.length === 1
         ? start.character + body.length
-        : lines[lines.length - 1].length;
+        : body[body.length - 1].length;
 
       currentPreviewRange = new vscode.Range(
         start,
@@ -97,7 +95,7 @@ export async function insertSnippet(): Promise<void> {
 
     pendingEdit = pendingEdit
       .catch(() => {})
-      .then(() => applyPreview(snippet.body));
+      .then(() => applyPreview(snippet.body.join('\n')));
   });
 
   // ── Подтверждение → заменяем превью настоящим сниппетом ──────────
@@ -116,7 +114,7 @@ export async function insertSnippet(): Promise<void> {
     const targetRange = currentPreviewRange ?? originalSelection;
 
     await editor.insertSnippet(
-      new vscode.SnippetString(snippet.body),
+      new vscode.SnippetString(snippet.body.join('\n')),
       targetRange
     );
 
