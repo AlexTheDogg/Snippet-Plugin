@@ -2,14 +2,6 @@ import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
 import { Snippet } from '../types';
 
-const EXPORT_VERSION = 1;
-
-interface ExportFile {
-  version: number;
-  exportedAt: string;
-  snippets: Snippet[];
-}
-
 export async function exportSnippets(): Promise<void> {
   let snippets = getAllSnippets();
   if (snippets.length === 0) {
@@ -42,6 +34,8 @@ export async function exportSnippets(): Promise<void> {
 
   if (!toExport || toExport.length === 0) {return;}
 
+  const converted = toVsCodeSnippetFormat(toExport);
+
   const uri = await vscode.window.showSaveDialog({
     filters: { 'JSON': ['json'] },
     defaultUri: vscode.Uri.file('snippets-export.json'),
@@ -49,14 +43,8 @@ export async function exportSnippets(): Promise<void> {
   });
   if (!uri) {return;}
 
-  const payload: ExportFile = {
-    version: EXPORT_VERSION,
-    exportedAt: new Date().toISOString(),
-    snippets: toExport
-  };
-
   try {
-    const content = JSON.stringify(payload, null, 2);
+    const content = JSON.stringify(converted, null, 2);
     await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
     vscode.window.showInformationMessage(
       `Экспортировано шаблонов: ${toExport.length}`
@@ -120,4 +108,21 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
 
     quickPick.show();
   });
+}
+
+function toVsCodeSnippetFormat(
+  snippets: Snippet[]
+): Record<string, { scope?: string; prefix: string; body: string[]; description?: string; }> {
+  const result: Record<string, any> = {};
+
+  for (const snippet of snippets) {
+    result[snippet.name] = {
+      ...(snippet.language ? { scope: snippet.language } : {}),
+      prefix: snippet.prefix || snippet.name,
+      body: snippet.body.split('\n'),
+      ...(snippet.description ? { description: snippet.description } : {})
+    };
+  }
+
+  return result;
 }

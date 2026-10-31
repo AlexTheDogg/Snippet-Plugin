@@ -3,96 +3,116 @@ import { Snippet } from './types';
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
-  snippets?: Snippet[];   // очищенные валидные данные
+  snippets: Snippet[];
 }
 
-/**
- * Проверяет массив на соответствие структуре Snippet[].
- *
- * Возвращает:
- *   - valid: true, если все элементы корректны
- *   - errors: список ошибок с индексами (для показа пользователю)
- *   - snippets: нормализованные объекты (только известные поля,
- *               опциональные — со значениями по умолчанию)
- */
 export function validateSnippetArray(data: unknown): ValidationResult {
   const errors: string[] = [];
+  const snippets: Snippet[] = [];
 
-  if (!Array.isArray(data)) {
-    return { valid: false, errors: ['Корневой элемент должен быть массивом'] };
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return {valid: false, errors: ["Неверный формат файла"], snippets: []};
   }
 
-  const snippets: Snippet[] = [];
-  const seenNames = new Set<string>();
+  const obj = data as Record<string, unknown>;
+  const keys = Object.keys(obj);
 
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i];
-    const at = `Элемент [${i}]`;
+  if (keys.length === 0) {
+    return { valid: true, errors: [], snippets: [] };
+  }
 
-    if (!item || typeof item !== 'object') {
-      errors.push(`${at}: не является объектом`);
-      continue;
-    }
+  for (const [name, rawValue] of Object.entries(obj)) {
+    const at = `Сниппет "${name}"`;
 
-    const obj = item as Record<string, unknown>;
-
-    // Обязательные поля
-    if (typeof obj.name !== 'string' || obj.name.trim().length === 0) {
-      errors.push(`${at}: отсутствует или пустое поле "name"`);
+    // Имя ключа
+    if (!name.trim()) {
+      errors.push('Пустое имя ключа в объекте сниппетов');
       continue;
     }
 
-    if (typeof obj.body !== 'string' || obj.body.trim().length === 0) {
-      errors.push(`${at} ("${obj.name}"): отсутствует или пустое поле "body"`);
+    // Значение — объект
+    if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
+      errors.push(`${at}: значение должно быть объектом`);
       continue;
     }
 
-    // Дубликаты внутри файла
-    if (seenNames.has(obj.name)) {
-      errors.push(`${at}: дубликат имени "${obj.name}" внутри файла`);
-      continue;
-    }
-    seenNames.add(obj.name);
+    const v = rawValue as Record<string, unknown>;
 
-    // Опциональные поля
-    if (obj.description !== undefined && typeof obj.description !== 'string') {
-      errors.push(`${at} ("${obj.name}"): "description" должен быть строкой`);
-      continue;
-    }
-    if (obj.language !== undefined && typeof obj.language !== 'string') {
-      errors.push(`${at} ("${obj.name}"): "language" должен быть строкой`);
-      continue;
-    }
-    if (obj.prefix !== undefined && typeof obj.prefix !== 'string') {
-      errors.push(`${at} ("${obj.name}"): "prefix" должен быть строкой`);
-      continue;
-    }
-    if (obj.usageCount !== undefined && typeof obj.usageCount !== 'number') {
-      errors.push(`${at} ("${obj.name}"): "usageCount" должен быть числом`);
-      continue;
-    }
-    if (obj.favorite !== undefined && typeof obj.favorite !== 'boolean') {
-      errors.push(`${at} ("${obj.name}"): "favorite" должен быть boolean`);
-      continue;
-    }
-    if (obj.categories !== undefined && !Array.isArray(obj.categories)) {
-      errors.push(`${at} ("${obj.name}"): "categories" должен быть массивом`);
+    // body — обязательно
+    if (!('body' in v)) {
+      errors.push(`${at}: отсутствует обязательное поле "body"`);
       continue;
     }
 
-    // Собираем «чистый» Snippet — только известные поля
+    // body: string | string[]
+    let body: string;
+    if (typeof v.body === 'string') {
+      body = v.body;
+    } else if (Array.isArray(v.body)) {
+      if (!v.body.every(s => typeof s === 'string')) {
+        errors.push(`${at}: "body" должен быть строкой или массивом строк`);
+        continue;
+      }
+      body = (v.body as string[]).join('\n');
+    } else {
+      errors.push(`${at}: "body" должен быть строкой или массивом строк`);
+      continue;
+    }
+
+    if (!body.trim()) {
+      errors.push(`${at}: пустое тело шаблона ("body")`);
+      continue;
+    }
+
+
+    let prefix: string | undefined;
+    if (v.prefix !== undefined) {
+      if (typeof v.prefix === 'string') {
+        prefix = v.prefix;
+      } else if (
+        Array.isArray(v.prefix) &&
+        v.prefix.every(s => typeof s === 'string')
+      ) {
+        prefix = (v.prefix as string[])[0];
+      } else {
+        errors.push(`${at}: "prefix" должен быть строкой или массивом строк`);
+        continue;
+      }
+    }
+
+    let language: string | undefined;
+    if (v.scope !== undefined) {
+      if (typeof v.scope === 'string') {
+        language = v.scope.split(',')[0].trim() || undefined;
+      } else if (
+        Array.isArray(v.scope) &&
+        v.scope.every(s => typeof s === 'string')
+      ) {
+        language = ((v.scope as string[])[0] ?? '').trim() || undefined;
+      } else {
+        errors.push(`${at}: "scope" должен быть строкой или массивом строк`);
+        continue;
+      }
+    }
+
+    let description: string | undefined;
+    if (v.description !== undefined) {
+      if (typeof v.description === 'string') {
+        description = v.description;
+      } else {
+        errors.push(`${at}: "description" должен быть строкой`);
+        continue;
+      }
+    }
+
     snippets.push({
-      name: obj.name,
-      body: obj.body,
-      description: typeof obj.description === 'string' ? obj.description : undefined,
-      language: typeof obj.language === 'string' ? obj.language : undefined,
-      prefix: typeof obj.prefix === 'string' ? obj.prefix : undefined,
-      usageCount: typeof obj.usageCount === 'number' ? obj.usageCount : 0,
-      lastUsed: typeof obj.lastUsed === 'number' ? obj.lastUsed : undefined,
-      favorite: typeof obj.favorite === 'boolean' ? obj.favorite : false,
-      categories: Array.isArray(obj.categories)
-        ? obj.categories.filter((c): c is string => typeof c === 'string')
-        : undefined
+      name,
+      body,
+      description,
+      language,
+      prefix,
+      usageCount: 0,
+      favorite: false
     });
   }
 

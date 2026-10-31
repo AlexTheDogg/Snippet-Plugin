@@ -30,35 +30,23 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-  // 4. Поддержка двух форматов: массив или { version, snippets }
-  const rawSnippets =
-    Array.isArray(parsed)
-      ? parsed
-      : (parsed && typeof parsed === 'object' && 'snippets' in parsed)
-        ? (parsed as { snippets: unknown }).snippets
-        : null;
+   // 4. Валидация VS Code-формата
+  const result = validateSnippetArray(parsed);
 
-  if (rawSnippets === null) {
-    vscode.window.showErrorMessage(
-      'Файл не содержит массива шаблонов (ожидается [...] или { snippets: [...] })'
-    );
-    return;
-  }
-
-  // 5. Валидация структуры
-  const result = validateSnippetArray(rawSnippets);
-  if (!result.valid || !result.snippets) {
+  if (!result.valid) {
     const top = result.errors.slice(0, 5).join('\n');
     const more = result.errors.length > 5
       ? `\n… и ещё ${result.errors.length - 5} ошибок`
       : '';
-    vscode.window.showErrorMessage(`Файл содержит ошибки:\n${top}${more}`);
+    vscode.window.showErrorMessage(
+      `Файл не соответствует формату VS Code-сниппетов:\n${top}${more}`
+    );
     return;
   }
 
   const imported = result.snippets;
   if (imported.length === 0) {
-    vscode.window.showInformationMessage('Файл не содержит шаблонов');
+    vscode.window.showInformationMessage('Файл не содержит сниппетов');
     return;
   }
 

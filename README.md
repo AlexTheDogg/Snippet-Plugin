@@ -91,6 +91,11 @@ Users appreciate release notes as you update your extension.
 
 Добавлен импорт шаблонов.
 
+
+### 1.4.1
+
+исправление багов экспорта и импорта.
+
 ---
 
 ## Following extension guidelines
