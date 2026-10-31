@@ -11,7 +11,7 @@
 * Просмотр статистики использования шаблонов.
 * Группировка шаблонов по языкам, пользовательским категориям и избранному.
 * Предпросмотр шаблона перед вставкой.
-* Экспорт шаблонов в файл .json.
+* Экспорт и импорт шаблонов в формате .json.
 
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
@@ -86,6 +86,10 @@ Users appreciate release notes as you update your extension.
 ### 1.3.0
 
 Добавлен экспорт шаблонов в формат .json
+
+### 1.4.0
+
+Добавлен импорт шаблонов.
 
 ---
 

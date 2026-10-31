@@ -40,6 +40,10 @@
       {
         "command": "smartSnippet.export",
         "title": "Export snippets"
+      },
+      {
+        "command": "smartSnippet.import",
+        "title": "Import snippets"
       }
     ],
     "keybindings": [
@@ -70,6 +74,10 @@
       {
         "command": "smartSnippet.export",
         "key": "ctrl+alt+e"
+      },
+      {
+        "command": "smartSnippet.import",
+        "key": "ctrl+alt+m"
       }
     ],
     "configuration": {

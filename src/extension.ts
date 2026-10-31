@@ -6,6 +6,7 @@ import { saveSnippet } from './commands/save';
 import { showStats } from './commands/stats';
 import { openSnippet } from './commands/list';
 import { exportSnippets } from './commands/export';
+import { importSnippets } from './commands/import';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -28,6 +29,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('smartSnippet.export', exportSnippets)
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('smartSnippet.import', importSnippets)
   );
 }
 
