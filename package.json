@@ -53,7 +53,7 @@
       },
       {
         "command": "smartSnippet.insert",
-        "key": "ctrl+alt+i"
+        "key": "ctrl+shift+i"
       },
       {
         "command": "smartSnippet.delete",
