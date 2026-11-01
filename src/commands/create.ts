@@ -17,7 +17,7 @@ export async function createSnippet(context: vscode.ExtensionContext): Promise<v
   const name = await vscode.window.showInputBox({
     prompt: 'Имя шаблона'
   });
-  if (!name) return;
+  if (!name) {return;}
 
   const existing = findSnippet(name);
   if (existing) {
@@ -25,7 +25,7 @@ export async function createSnippet(context: vscode.ExtensionContext): Promise<v
       `Шаблон "${name}" уже существует. Перезаписать?`,
       { modal: true }, 'Перезаписать'
     );
-    if (c !== 'Перезаписать') return;
+    if (c !== 'Перезаписать') {return;}
   }
 
   const template: PendingTemplate = existing

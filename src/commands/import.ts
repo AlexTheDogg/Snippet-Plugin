@@ -59,9 +59,10 @@ export async function importSnippets(): Promise<void> {
     if (!ex) {
       newOnes.push(imp);
     } else if (
-      ex.body === imp.body &&
+      ex.body.join()=== imp.body.join() &&
       ex.description === imp.description &&
-      ex.language === imp.language
+      ex.language?.join() === imp.language?.join() &&
+      ex.prefix?.join() === imp.prefix?.join()
     ) {
       identical.push(imp);
     } else {

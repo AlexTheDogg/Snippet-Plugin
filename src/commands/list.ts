@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
 import { openTemplateEditor, PendingTemplate } from '../templateEditor';
-import { Snippet } from '../types'
+import { Snippet } from '../types';
 
 export async function openSnippet(context: vscode.ExtensionContext): Promise<void> {
   const snippets = getAllSnippets();
@@ -11,20 +11,32 @@ export async function openSnippet(context: vscode.ExtensionContext): Promise<voi
   }
 
   const filtered = await filterSnippets(snippets);
-  if (!filtered || filtered.length === 0) return;
+  if (!filtered || filtered.length === 0) {return;}
 
   const sub = await vscode.window.showQuickPick(
     filtered.map(s => ({
       label: s.name,
       description: [s.language?.join(', '), s.description].filter(Boolean).join(' · '),
-      detail: s.body.join('\n').substring(0, 80)
-    })),
-    { placeHolder: `Найдено: ${filtered.length}` }
+      detail: s.body.join('\n').substring(0, 80),
+      filterText: [
+        s.name,
+        s.description ?? '',
+        ...(s.language ?? []),
+        ...(s.prefix ?? []),
+        ...(s.categories ?? []),
+        s.body.join('\n')
+      ].join(' ')
+      })),
+      { placeHolder: `Найдено: ${filtered.length}`,
+        matchOnDescription: true,
+        matchOnDetail: true
+      },
+
   );
-  if (!sub) return;
+  if (!sub) {return;}
 
   const snippet = filtered.find(x => x.name === sub.label);
-  if (!snippet) return;
+  if (!snippet) {return;}
 
   const template: PendingTemplate = {
     name: snippet.name,

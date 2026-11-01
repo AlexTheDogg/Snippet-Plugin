@@ -83,12 +83,7 @@ export function validateSnippetArray(data: unknown): ValidationResult {
     let language: string[] | undefined;
     if (v.scope !== undefined) {
       if (typeof v.scope === 'string') {
-        language = [v.scope];
-      } else if (
-        Array.isArray(v.scope) &&
-        v.scope.every(s => typeof s === 'string')
-      ) {
-        language = (v.scope as string[]);
+        language = v.scope.split(',').map(s => s.trim());
       } else {
         errors.push(`${at}: "scope" должен быть строкой или массивом строк`);
         continue;

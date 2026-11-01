@@ -41,7 +41,7 @@ export async function openTemplateEditor(
       }
     );
 
-    if (!action) return;   // Esc — отмена
+    if (!action) {return;}   // Esc — отмена
 
     if (action.label.startsWith('$(check)')) {
       if (!template.body || template.body.join('').trim() === '') {
@@ -54,12 +54,12 @@ export async function openTemplateEditor(
       return;
     }
 
-    if (action.label.startsWith('$(text)'))           await editName(template);
-    else if (action.label.startsWith('$(info)'))      await editDescription(template);
-    else if (action.label.startsWith('$(symbol-method)')) await editLanguages(template);
-    else if (action.label.startsWith('$(tag)'))       await editPrefixes(template);
-    else if (action.label.startsWith('$(star)'))      template.favorite = !template.favorite;
-    else if (action.label.startsWith('$(folder)'))    await editCategories(template);
+    if (action.label.startsWith('$(text)'))           {await editName(template);}
+    else if (action.label.startsWith('$(info)'))      {await editDescription(template);}
+    else if (action.label.startsWith('$(symbol-method)')) {await editLanguages(template);}
+    else if (action.label.startsWith('$(tag)'))       {await editPrefixes(template);}
+    else if (action.label.startsWith('$(star)'))      {template.favorite = !template.favorite;}
+    else if (action.label.startsWith('$(folder)'))    {await editCategories(template);}
     else if (action.label.startsWith('$(edit)')) {
       await openBodyEditor(context, template);
       return;   // ← сохранение произойдёт через Ctrl+Alt+S
@@ -83,7 +83,7 @@ async function editName(t: PendingTemplate): Promise<void> {
       return null;
     }
   });
-  if (name?.trim()) t.name = name.trim();
+  if (name?.trim()) {t.name = name.trim();}
 }
 
 async function editDescription(t: PendingTemplate): Promise<void> {
@@ -91,7 +91,7 @@ async function editDescription(t: PendingTemplate): Promise<void> {
     prompt: 'Описание (Enter на пустом — очистить)',
     value: t.description ?? ''
   });
-  if (d === undefined) return;   // Esc — оставить как было
+  if (d === undefined) {return;}   // Esc — оставить как было
   t.description = d.trim() || undefined;
 }
 
@@ -100,7 +100,7 @@ async function editPrefixes(t: PendingTemplate): Promise<void> {
     prompt: 'Префиксы через запятую (Enter — очистить)',
     value: t.prefix.join(', ')
   });
-  if (p === undefined) return;
+  if (p === undefined) {return;}
   t.prefix = p.split(',').map(x => x.trim()).filter(Boolean);
 }
 
@@ -113,15 +113,15 @@ async function editLanguages(t: PendingTemplate): Promise<void> {
     canPickMany: true,
     placeHolder: 'Отметьте языки'
   });
-  if (!picked) return;
+  if (!picked) {return;}
 
   if (picked.some(p => p.label.startsWith('$(add)'))) {
     const custom = await vscode.window.showInputBox({
       prompt: 'Языки через запятую',
       validateInput: v => {
-        if (!v || !v.trim()) return 'Введите хотя бы один';
+        if (!v || !v.trim()) {return 'Введите хотя бы один';}
         for (const l of v.split(',')) {
-          if (!all.includes(l.trim().toLowerCase())) return `"${l.trim()}" — неизвестный язык`;
+          if (!all.includes(l.trim().toLowerCase())) {return `"${l.trim()}" — неизвестный язык`;}
         }
         return null;
       }
@@ -155,7 +155,7 @@ async function editCategories(t: PendingTemplate): Promise<void> {
     canPickMany: true,
     placeHolder: 'Отметьте категории'
   });
-  if (!picked) return;
+  if (!picked) {return;}
 
   const createNew = picked.some(p => p.label.startsWith('$(add)'));
 
@@ -164,7 +164,7 @@ async function editCategories(t: PendingTemplate): Promise<void> {
       prompt: 'Категории через запятую (добавятся к выбранным)',
       validateInput: v => (!v || !v.trim()) ? 'Введите категорию' : null
     });
-    if (n === undefined) return;   // Esc — оставить как было
+    if (n === undefined) {return;}   // Esc — оставить как было
 
     // ✅ Новые категории ДОБАВЛЯЮТСЯ к выбранным, а не заменяют их
     const selected = picked
@@ -196,7 +196,7 @@ async function saveTemplate(t: PendingTemplate): Promise<void> {
   const renamed = t.originalName !== undefined && t.originalName !== t.name;
   if (renamed) {
     const oldIdx = snippets.findIndex(s => s.name === t.originalName);
-    if (oldIdx >= 0) snippets.splice(oldIdx, 1);
+    if (oldIdx >= 0) {snippets.splice(oldIdx, 1);}
   }
 
   // ── Готовим итоговый объект ────────────────────────────────────
@@ -214,8 +214,8 @@ async function saveTemplate(t: PendingTemplate): Promise<void> {
 
   // ── Заменяем или добавляем ─────────────────────────────────────
   const idx = snippets.findIndex(s => s.name === t.name);
-  if (idx >= 0) snippets[idx] = newSnippet;
-  else snippets.push(newSnippet);
+  if (idx >= 0) {snippets[idx] = newSnippet;}
+  else {snippets.push(newSnippet);}
 
   // ── Одно сохранение — одно событие onDidChangeConfiguration ────
   await saveSnippets(snippets);

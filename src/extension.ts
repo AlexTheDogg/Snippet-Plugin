@@ -13,7 +13,7 @@ import { getAllSnippets, saveSnippets } from './storage';
 async function trackInsertion(name: string): Promise<void> {
   const snippets = getAllSnippets();
   const idx = snippets.findIndex(s => s.name === name);
-  if (idx < 0) return;
+  if (idx < 0) {return;}
 
   snippets[idx].usageCount = (snippets[idx].usageCount ?? 0) + 1;
   snippets[idx].lastUsed = Date.now();

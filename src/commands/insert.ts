@@ -48,7 +48,7 @@ export async function insertSnippet(): Promise<void> {
 
   // ── Применение превью ────────────────────────────────────────────
   const applyPreview = async (body: string): Promise<void> => {
-    if (isAccepted) return;
+    if (isAccepted) {return;}
 
     const startPos = currentPreviewRange?.start ?? originalSelection.start;
     const oldRange = currentPreviewRange;
@@ -61,14 +61,14 @@ export async function insertSnippet(): Promise<void> {
     const indentedBody = body
       .split('\n')
       .map((line, i) => {
-        if (i === 0) return line;
-        if (line.length === 0) return line;
+        if (i === 0) {return line;}
+        if (line.length === 0) {return line;}
         return lineIndent + line;
       })
       .join('\n');
 
     await editor.edit(eb => {
-      if (oldRange) eb.delete(oldRange);
+      if (oldRange) {eb.delete(oldRange);}
       eb.insert(startPos, indentedBody);
     }, { undoStopBefore: false, undoStopAfter: false });
 
@@ -104,10 +104,10 @@ export async function insertSnippet(): Promise<void> {
     const selected = quickPick.selectedItems[0];
     quickPick.hide();
     await pendingEdit.catch(() => {});
-    if (!selected) return;
+    if (!selected) {return;}
 
     const snippet = snippets.find(s => s.name === selected.label);
-    if (!snippet) return;
+    if (!snippet) {return;}
 
     const startPos = (currentPreviewRange ?? originalSelection).start;
 

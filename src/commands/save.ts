@@ -5,14 +5,14 @@ import { Snippet } from '../types';
 
 export async function saveSnippet(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
-  if (!editor) { /* ... */ return; }
+  if (!editor) {return;}
 
   const uriKey = editor.document.uri.toString();
   const template = pendingTemplates.get(uriKey);
-  if (!template) { /* ... */ return; }
+  if (!template) {return;}
 
   const body = editor.document.getText().split('\n');
-  if (body.join('').trim() === '') { /* ... */ return; }
+  if (body.join('').trim() === '') {return;}
 
   // ✅ Собираем итоговый массив как в saveTemplate
   const snippets = getAllSnippets();
@@ -29,7 +29,7 @@ export async function saveSnippet(): Promise<void> {
 
   if (renamed) {
     const oldIdx = snippets.findIndex(s => s.name === template.originalName);
-    if (oldIdx >= 0) snippets.splice(oldIdx, 1);
+    if (oldIdx >= 0) {snippets.splice(oldIdx, 1);}
   }
 
   const newSnippet: Snippet = {
@@ -45,8 +45,8 @@ export async function saveSnippet(): Promise<void> {
   };
 
   const idx = snippets.findIndex(s => s.name === template.name);
-  if (idx >= 0) snippets[idx] = newSnippet;
-  else snippets.push(newSnippet);
+  if (idx >= 0) {snippets[idx] = newSnippet;}
+  else {snippets.push(newSnippet);}
 
   await saveSnippets(snippets);
 

@@ -39,7 +39,7 @@ export async function showStats(context: vscode.ExtensionContext): Promise<void>
         favorite: s.favorite,
         categories: s.categories ?? [],
         body: s.body
-        } 
+        };
         await openTemplateEditor(context, template);
       }
       return;
