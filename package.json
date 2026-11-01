@@ -3,6 +3,10 @@
   "displayName": "snippet-inserter-extension",
   "description": "Snippet inserter extension for VS Code",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlexTheDogg/Snippet-Plugin.git"
+  },
   "engines": {
     "vscode": "^1.140.0"
   },
