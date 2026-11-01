@@ -12,12 +12,12 @@ import { registerSnippetProviders, disposeSnippetProviders } from './snippetProv
 export function activate(context: vscode.ExtensionContext) {
   // 1. Регистрация команд
   context.subscriptions.push(
-    vscode.commands.registerCommand('smartSnippet.create', createSnippet),
+    vscode.commands.registerCommand('smartSnippet.create',  () => createSnippet(context)),
     vscode.commands.registerCommand('smartSnippet.save', saveSnippet),
     vscode.commands.registerCommand('smartSnippet.insert', insertSnippet),
     vscode.commands.registerCommand('smartSnippet.delete', deleteSnippet),
-    vscode.commands.registerCommand('smartSnippet.list', openSnippet),
-    vscode.commands.registerCommand('smartSnippet.stats', showStats),
+    vscode.commands.registerCommand('smartSnippet.list', () => openSnippet(context)),
+    vscode.commands.registerCommand('smartSnippet.stats', () => showStats(context)),
     vscode.commands.registerCommand('smartSnippet.export', exportSnippets),
     vscode.commands.registerCommand('smartSnippet.import', importSnippets)
   );

@@ -1,7 +1,44 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
-import { openTextRedactor } from './create';
-import { Snippet } from '../types';
+import { openTemplateEditor, PendingTemplate } from '../templateEditor';
+import { Snippet } from '../types'
+
+export async function openSnippet(context: vscode.ExtensionContext): Promise<void> {
+  const snippets = getAllSnippets();
+  if (snippets.length === 0) {
+    vscode.window.showInformationMessage('Нет шаблонов');
+    return;
+  }
+
+  const filtered = await filterSnippets(snippets);
+  if (!filtered || filtered.length === 0) return;
+
+  const sub = await vscode.window.showQuickPick(
+    filtered.map(s => ({
+      label: s.name,
+      description: [s.language?.join(', '), s.description].filter(Boolean).join(' · '),
+      detail: s.body.join('\n').substring(0, 80)
+    })),
+    { placeHolder: `Найдено: ${filtered.length}` }
+  );
+  if (!sub) return;
+
+  const snippet = filtered.find(x => x.name === sub.label);
+  if (!snippet) return;
+
+  const template: PendingTemplate = {
+    name: snippet.name,
+    originalName: snippet.name,
+    description: snippet.description,
+    language: snippet.language ?? [],
+    prefix: snippet.prefix ?? [],
+    favorite: snippet.favorite,
+    categories: snippet.categories ?? [],
+    body: snippet.body
+  };
+
+  await openTemplateEditor(context, template);
+}
 
 export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | undefined> {
   const languages = [...new Set(snippets.flatMap(s => s.language ?? []))];
@@ -42,24 +79,4 @@ export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | u
     filtered = snippets.filter(s => s.categories?.includes(category));
   }
   return filtered;
-}
-
-export async function openSnippet(): Promise<void>{
-  const filtered = await filterSnippets(getAllSnippets());
-  if (filtered){
-    const sub = await vscode.window.showQuickPick(
-      filtered.map(s => ({
-        label: s.name,
-        description: [s.language, `${s.usageCount ?? 0}×`, s.description].filter(Boolean).join(' · '),
-        detail: s.body[0] + (s.body.length > 1? '...' : '')
-      })),
-      { placeHolder: `Найдено: ${filtered.length}`, matchOnDescription: true, matchOnDetail: true }
-    );
-    if (sub) {
-      const s = filtered.find(x => x.name === sub.label);
-      if (s) {
-        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite, s.categories);
-      }
-    }
-  }
 }

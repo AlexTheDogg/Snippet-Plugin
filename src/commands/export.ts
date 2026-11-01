@@ -120,7 +120,7 @@ function toVsCodeSnippetFormat(
       prefix: snippet.prefix,
       body: snippet.body,
       ...(snippet.description ? { description: snippet.description } : {}),
-      ...(snippet.language ? { scope: snippet.language } : {})
+      ...(snippet.language ? { scope: snippet.language.join(', ') } : {})
     };
   }
 

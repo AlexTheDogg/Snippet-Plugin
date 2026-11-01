@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
-import { openTextRedactor } from './create';
+import { openTemplateEditor, PendingTemplate } from '../templateEditor';
 
-export async function showStats(): Promise<void> {
+export async function showStats(context: vscode.ExtensionContext): Promise<void> {
   const snippets = getAllSnippets();
   if (snippets.length === 0) {
     vscode.window.showInformationMessage('Нет шаблонов');
@@ -30,7 +30,17 @@ export async function showStats(): Promise<void> {
 
   const s = snippets.find(x => x.name === picked.label.slice(3));
       if (s) {
-        await openTextRedactor(s.name, s.description, s.language, s.prefix, s.body, s.favorite, s.categories);
+        const template: PendingTemplate = {
+        name: s.name,
+        originalName: s.name,
+        description: s.description,
+        language: s.language ?? [],
+        prefix: s.prefix ?? [],
+        favorite: s.favorite,
+        categories: s.categories ?? [],
+        body: s.body
+        } 
+        await openTemplateEditor(context, template);
       }
       return;
 }
