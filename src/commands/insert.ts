@@ -48,41 +48,41 @@ export async function insertSnippet(): Promise<void> {
 
   // ── Применение превью ────────────────────────────────────────────
   const applyPreview = async (body: string): Promise<void> => {
-    if (isAccepted) {return;}
+    if (isAccepted) return;
 
-    if (!currentPreviewRange) {
-      // Первый показ: заменяем выделение (или вставляем в точку)
-      await editor.edit(eb => {
-        eb.replace(originalSelection, body);
-      }, { undoStopBefore: false, undoStopAfter: false });
+    const startPos = currentPreviewRange?.start ?? originalSelection.start;
+    const oldRange = currentPreviewRange;
 
-      const start = originalSelection.start;
-      const endLine = start.line + body.length - 1;
-      const endChar = body.length === 1
-        ? start.character + body.length
-        : body[body.length - 1].length;
+  // Leading whitespace текущей строки — как в insertSnippet
+    const lineIndent = editor.document
+      .lineAt(startPos.line).text
+      .match(/^[ \t]*/)?.[0] ?? '';
 
-      currentPreviewRange = new vscode.Range(
-        start,
-        new vscode.Position(endLine, endChar)
-      );
-    } else {
-      // Последующие: заменяем предыдущее превью
-      const start = currentPreviewRange.start;
-      await editor.edit(eb => {
-        eb.replace(currentPreviewRange!, body);
-      }, { undoStopBefore: false, undoStopAfter: false });
+    const indentedBody = body
+      .split('\n')
+      .map((line, i) => {
+        if (i === 0) return line;
+        if (line.length === 0) return line;
+        return lineIndent + line;
+      })
+      .join('\n');
 
-      const endLine = start.line + body.length - 1;
-      const endChar = body.length === 1
-        ? start.character + body.length
-        : body[body.length - 1].length;
+    await editor.edit(eb => {
+      if (oldRange) eb.delete(oldRange);
+      eb.insert(startPos, indentedBody);
+    }, { undoStopBefore: false, undoStopAfter: false });
 
-      currentPreviewRange = new vscode.Range(
-        start,
-        new vscode.Position(endLine, endChar)
-      );
-    }
+    const bodyLines = indentedBody.split('\n');
+    const lastLine = bodyLines[bodyLines.length - 1];
+    const endLine = startPos.line + bodyLines.length - 1;
+    const endChar = bodyLines.length === 1
+      ? startPos.character + lastLine.length
+      : lastLine.length;
+
+    currentPreviewRange = new vscode.Range(
+      startPos,
+      new vscode.Position(endLine, endChar)
+    );
   };
 
   // ── Навигация → обновляем превью ─────────────────────────────────
@@ -101,26 +101,28 @@ export async function insertSnippet(): Promise<void> {
   // ── Подтверждение → заменяем превью настоящим сниппетом ──────────
   quickPick.onDidAccept(async () => {
     isAccepted = true;
-
     const selected = quickPick.selectedItems[0];
     quickPick.hide();
-
     await pendingEdit.catch(() => {});
+    if (!selected) return;
 
-    if (!selected) {return;}
-    const snippet = filtered.find(s => s.name === selected.label);
-    if (!snippet) {return;}
+    const snippet = snippets.find(s => s.name === selected.label);
+    if (!snippet) return;
 
-    const targetRange = currentPreviewRange ?? originalSelection;
+    const startPos = (currentPreviewRange ?? originalSelection).start;
+
+    if (currentPreviewRange) {
+      await editor.edit(eb => {
+        eb.delete(currentPreviewRange!);
+      }, { undoStopBefore: false, undoStopAfter: true });
+      currentPreviewRange = null;
+    }
 
     await editor.insertSnippet(
       new vscode.SnippetString(snippet.body.join('\n')),
-      targetRange
+      startPos
     );
 
-    currentPreviewRange = null;
-
-    // Статистика
     const updated = getAllSnippets();
     const idx = updated.findIndex(s => s.name === snippet.name);
     if (idx >= 0) {

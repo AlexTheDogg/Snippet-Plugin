@@ -2,18 +2,13 @@ import * as vscode from 'vscode';
 import { getAllSnippets } from './storage';
 import { Snippet } from './types';
 
-// Храним зарегистрированные провайдеры, чтобы можно было их обновлять
 let registeredProviders: vscode.Disposable[] = [];
 
 export function registerSnippetProviders(context: vscode.ExtensionContext): void {
-  // Сначала отписываемся от старых провайдеров, если они были
   disposeSnippetProviders();
 
   const snippets = getAllSnippets();
 
-  // Группируем шаблоны по каждому языку.
-  // Шаблон без языка ([] или undefined) → попадает в 'plaintext'.
-  // Шаблон с несколькими языками → попадает в КАЖДУЮ группу.
   const snippetsByLanguage = new Map<string, Snippet[]>();
 
   for (const snippet of snippets) {
@@ -70,7 +65,13 @@ export function registerSnippetProviders(context: vscode.ExtensionContext): void
               ...(snippet.categories ?? [])
             ];
             item.filterText = filterParts.join(' ');
-
+            
+            item.command = {
+              command: 'smartSnippet.trackInsertion',
+              title: '',
+              arguments: [snippet.name]
+            };
+            
             items.push(item);
           }
 

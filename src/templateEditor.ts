@@ -107,12 +107,11 @@ async function editPrefixes(t: PendingTemplate): Promise<void> {
 async function editLanguages(t: PendingTemplate): Promise<void> {
   const all = await vscode.languages.getLanguages();
   const items: vscode.QuickPickItem[] = [
-    { label: '$(add) Добавить новый...' },
     ...all.map(lang => ({ label: lang, picked: t.language.includes(lang) }))
   ];
   const picked = await vscode.window.showQuickPick(items, {
     canPickMany: true,
-    placeHolder: 'Отметьте языки (или «Добавить новый»)'
+    placeHolder: 'Отметьте языки'
   });
   if (!picked) return;
 

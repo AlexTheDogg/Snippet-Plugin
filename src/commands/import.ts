@@ -4,7 +4,6 @@ import { validateSnippetArray } from '../validation';
 import { Snippet } from '../types';
 
 export async function importSnippets(): Promise<void> {
-  // 1. Диалог выбора файла
   const uris = await vscode.window.showOpenDialog({
     canSelectMany: false,
     filters: { 'JSON': ['json'] },
@@ -12,7 +11,6 @@ export async function importSnippets(): Promise<void> {
   });
   if (!uris || uris.length === 0) {return;}
 
-  // 2. Чтение
   let raw: Uint8Array;
   try {
     raw = await vscode.workspace.fs.readFile(uris[0]);
@@ -21,7 +19,6 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-  // 3. Парсинг JSON
   let parsed: unknown;
   try {
     parsed = JSON.parse(Buffer.from(raw).toString('utf8'));
@@ -30,7 +27,6 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-   // 4. Валидация VS Code-формата
   const result = validateSnippetArray(parsed);
 
   if (!result.valid) {
@@ -73,7 +69,6 @@ export async function importSnippets(): Promise<void> {
     }
   }
 
-  // 7. Если импортировать нечего — выходим
   if (newOnes.length === 0 && conflicts.length === 0) {
     vscode.window.showInformationMessage(
       `Все ${imported.length} шаблонов уже есть — импорт не требуется`
@@ -81,7 +76,6 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-  // 8. Стратегия для конфликтов
   let overwrite = false;
   if (conflicts.length > 0) {
     const msg = [
@@ -99,7 +93,7 @@ export async function importSnippets(): Promise<void> {
       'Перезаписать конфликты',
       'Пропустить конфликты'
     );
-    if (!choice) {return;}   // Esc / закрытие → отмена
+    if (!choice) {return;}
 
     overwrite = choice === 'Перезаписать конфликты';
   }
@@ -116,14 +110,12 @@ export async function importSnippets(): Promise<void> {
       const old = existingByName.get(imp.name);
       merged.set(imp.name, {
         ...imp,
-        // Сохраняем статистику, если в файле её нет
         usageCount: imp.usageCount ?? old?.usageCount ?? 0,
         lastUsed: imp.lastUsed ?? old?.lastUsed
       });
     }
   }
 
-  // 10. Финальное подтверждение с числами — защита от случайной перезаписи
   const finalList = [...merged.values()];
   const willOverwrite = overwrite ? conflicts.length : 0;
 
@@ -140,7 +132,6 @@ export async function importSnippets(): Promise<void> {
   );
   if (confirm !== 'Импортировать') {return;}
 
-  // 11. Запись
   try {
     await saveSnippets(finalList);
   } catch (err) {
@@ -148,7 +139,6 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-  // 12. Итоговый отчёт
   const parts = [
     newOnes.length > 0 ? `добавлено: ${newOnes.length}` : '',
     willOverwrite > 0 ? `перезаписано: ${willOverwrite}` : '',

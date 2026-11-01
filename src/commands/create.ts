@@ -3,6 +3,17 @@ import { findSnippet } from '../storage';
 import { openTemplateEditor, PendingTemplate } from '../templateEditor';
 
 export async function createSnippet(context: vscode.ExtensionContext): Promise<void> {
+  const activeEditor = vscode.window.activeTextEditor;
+  const hasSelection = !!activeEditor && !activeEditor.selection.isEmpty;
+
+  const selectionText: string | undefined = hasSelection
+    ? activeEditor!.document.getText(activeEditor!.selection).replace(/\r/g, '')
+    : undefined;
+
+  const selectionLanguage: string[] | undefined = hasSelection
+    ? [activeEditor!.document.languageId]
+    : undefined;
+  
   const name = await vscode.window.showInputBox({
     prompt: 'Имя шаблона'
   });
@@ -33,7 +44,8 @@ export async function createSnippet(context: vscode.ExtensionContext): Promise<v
         language: [],
         prefix: [],
         favorite: false,
-        categories: []
+        categories: [],
+        body: selectionText !== undefined ? selectionText.split('\n') : undefined
       };
 
   await openTemplateEditor(context, template);

@@ -8,6 +8,18 @@ import { showStats } from './commands/stats';
 import { exportSnippets } from './commands/export';
 import { importSnippets } from './commands/import';
 import { registerSnippetProviders, disposeSnippetProviders } from './snippetProvider';
+import { getAllSnippets, saveSnippets } from './storage';
+
+async function trackInsertion(name: string): Promise<void> {
+  const snippets = getAllSnippets();
+  const idx = snippets.findIndex(s => s.name === name);
+  if (idx < 0) return;
+
+  snippets[idx].usageCount = (snippets[idx].usageCount ?? 0) + 1;
+  snippets[idx].lastUsed = Date.now();
+
+  await saveSnippets(snippets);
+}
 
 export function activate(context: vscode.ExtensionContext) {
   // 1. Регистрация команд
@@ -19,7 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('smartSnippet.list', () => openSnippet(context)),
     vscode.commands.registerCommand('smartSnippet.stats', () => showStats(context)),
     vscode.commands.registerCommand('smartSnippet.export', exportSnippets),
-    vscode.commands.registerCommand('smartSnippet.import', importSnippets)
+    vscode.commands.registerCommand('smartSnippet.import', importSnippets),
+    vscode.commands.registerCommand('smartSnippet.trackInsertion', trackInsertion)
   );
 
   // 2. Первичная регистрация провайдеров
