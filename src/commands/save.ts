@@ -3,10 +3,12 @@ import { getAllSnippets, findSnippet, saveSnippets } from '../storage';
 import { pendingTemplates } from '../templateEditor';
 import { Snippet } from '../types';
 
+// Сохранение сниппета из редактора
 export async function saveSnippet(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {return;}
 
+  // Проверяем, что текущий документ — это временный шаблон
   const uriKey = editor.document.uri.toString();
   const template = pendingTemplates.get(uriKey);
   if (!template) {return;}
@@ -14,24 +16,27 @@ export async function saveSnippet(): Promise<void> {
   const body = editor.document.getText().split('\n');
   if (body.join('').trim() === '') {return;}
 
-  // ✅ Собираем итоговый массив как в saveTemplate
+  // Собираем итоговый массив как в saveTemplate
   const snippets = getAllSnippets();
-
+  
+  // Получаем статистику использования из существующего сниппета, если он есть
   const statsSource = template.originalName
     ? findSnippet(template.originalName)
     : findSnippet(template.name);
   const usageCount = statsSource?.usageCount ?? 0;
   const lastUsed = statsSource?.lastUsed;
-
+  
+  // Проверяем, было ли переименование
   const renamed =
     template.originalName !== undefined &&
     template.originalName !== template.name;
-
+  
+  // Если переименовали — удаляем старый сниппет
   if (renamed) {
     const oldIdx = snippets.findIndex(s => s.name === template.originalName);
     if (oldIdx >= 0) {snippets.splice(oldIdx, 1);}
   }
-
+  // Создаём новый объект Snippet с обновлёнными данными
   const newSnippet: Snippet = {
     name: template.name,
     description: template.description,
@@ -43,7 +48,8 @@ export async function saveSnippet(): Promise<void> {
     favorite: template.favorite,
     categories: template.categories.length ? template.categories : undefined
   };
-
+  
+  // Сохраняем новый или обновлённый сниппет в массиве
   const idx = snippets.findIndex(s => s.name === template.name);
   if (idx >= 0) {snippets[idx] = newSnippet;}
   else {snippets.push(newSnippet);}

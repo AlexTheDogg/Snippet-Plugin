@@ -3,16 +3,17 @@ import { getAllSnippets } from '../storage';
 import { openTemplateEditor, PendingTemplate } from '../templateEditor';
 import { Snippet } from '../types';
 
+// Открытие сниппета для просмотра/редактирования
 export async function openSnippet(context: vscode.ExtensionContext): Promise<void> {
   const snippets = getAllSnippets();
   if (snippets.length === 0) {
     vscode.window.showInformationMessage('Нет шаблонов');
     return;
   }
-
+  // 1. Фильтрация по языку, категории, популярности и т.д.
   const filtered = await filterSnippets(snippets);
   if (!filtered || filtered.length === 0) {return;}
-
+  // 2. Выбор сниппета из отфильтрованного списка
   const sub = await vscode.window.showQuickPick(
     filtered.map(s => ({
       label: s.name,
@@ -37,7 +38,8 @@ export async function openSnippet(context: vscode.ExtensionContext): Promise<voi
 
   const snippet = filtered.find(x => x.name === sub.label);
   if (!snippet) {return;}
-
+  
+  // 3. Открытие редактора с выбранным сниппетом
   const template: PendingTemplate = {
     name: snippet.name,
     originalName: snippet.name,
@@ -52,10 +54,12 @@ export async function openSnippet(context: vscode.ExtensionContext): Promise<voi
   await openTemplateEditor(context, template);
 }
 
+// Фильтрация сниппетов по языку, категории, популярности и т.д.
 export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | undefined> {
   const languages = [...new Set(snippets.flatMap(s => s.language ?? []))];
   const categories = [...new Set(snippets.flatMap(s => s.categories ?? []))];
-
+  
+  // Формируем список опций для выбора фильтра
   const items: vscode.QuickPickItem[] = [
     { label: '$(list-unordered) Все шаблоны', description: `${snippets.length}` },
     ...languages.map(l => ({
@@ -67,13 +71,15 @@ export async function filterSnippets(snippets: Snippet[]): Promise<Snippet[] | u
       label: `$(folder) ${l}`,
     }))
   ];
-
+  
+  // Показываем QuickPick для выбора фильтра
   const picked = await vscode.window.showQuickPick(items, {
     placeHolder: 'Выберите фильтр',
     matchOnDescription: true
   });
   if (!picked) {return;}
-
+  
+  // Фильтруем сниппеты в зависимости от выбранного фильтра
   let filtered = snippets;
   if (picked.label.startsWith('$(symbol-method)')) {
     const lang = picked.label.replace('$(symbol-method) Язык: ', '');

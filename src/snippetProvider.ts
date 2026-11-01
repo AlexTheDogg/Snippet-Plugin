@@ -2,15 +2,18 @@ import * as vscode from 'vscode';
 import { getAllSnippets } from './storage';
 import { Snippet } from './types';
 
+// Провайдер сниппетов для всех языков, на которые есть сниппеты.
 let registeredProviders: vscode.Disposable[] = [];
 
+// Регистрирует провайдеры сниппетов для всех языков, на которые есть сниппеты.
 export function registerSnippetProviders(context: vscode.ExtensionContext): void {
+  // Сначала отписываемся от старых провайдеров, чтобы не дублировать предложения
   disposeSnippetProviders();
 
   const snippets = getAllSnippets();
-
   const snippetsByLanguage = new Map<string, Snippet[]>();
-
+  
+  // Группируем сниппеты по языкам
   for (const snippet of snippets) {
     const langs = snippet.language && snippet.language.length > 0
       ? snippet.language

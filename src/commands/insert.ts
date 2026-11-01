@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getAllSnippets, saveSnippets } from '../storage';
 import { filterSnippets } from './list';
 
+// вставляет выбранный сниппет в активный редактор с живым предпросмотром
 export async function insertSnippet(): Promise<void> {
   const snippets = getAllSnippets();
 
@@ -32,12 +33,12 @@ export async function insertSnippet(): Promise<void> {
   let isAccepted = false;
   let pendingEdit: Promise<unknown> = Promise.resolve();
 
-  // ── QuickPick ────────────────────────────────────────────────────
   const quickPick = vscode.window.createQuickPick();
   quickPick.placeholder = 'Выберите шаблон (живой предпросмотр)';
   quickPick.matchOnDescription = true;
   quickPick.matchOnDetail = true;
 
+  // ── Фильтрация сниппетов ─────────────────────────────────────────
   const filtered = await filterSnippets(snippets);
   if (!filtered) {return;}
   quickPick.items = filtered.map(s => ({

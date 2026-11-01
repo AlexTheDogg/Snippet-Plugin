@@ -2,13 +2,14 @@ import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
 import { Snippet } from '../types';
 
+// Экспорт сниппетов в JSON-файл в формате VS Code Snippet
 export async function exportSnippets(): Promise<void> {
   let snippets = getAllSnippets();
   if (snippets.length === 0) {
     vscode.window.showInformationMessage('Нет шаблонов для экспорта');
     return;
   }
-
+  // 1. Выбор режима: все / выборочно
   const mode = await vscode.window.showQuickPick(
     [
       {
@@ -29,20 +30,22 @@ export async function exportSnippets(): Promise<void> {
     toExport = snippets;
   }
   else{
-    toExport = await SelectForExport(snippets);
+    toExport = await SelectForExport(snippets); //выбор вручную
   }
 
   if (!toExport || toExport.length === 0) {return;}
-
+  
+  // конвертируем в формат VS Code Snippet
   const converted = toVsCodeSnippetFormat(toExport);
-
+  
   const uri = await vscode.window.showSaveDialog({
     filters: { 'JSON': ['json'] },
     defaultUri: vscode.Uri.file('snippets-export.json'),
     saveLabel: 'Экспортировать'
   });
   if (!uri) {return;}
-
+  
+  // сохраняем в файл
   try {
     const content = JSON.stringify(converted, null, 2);
     await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
@@ -54,9 +57,9 @@ export async function exportSnippets(): Promise<void> {
   }
 }
 
-
+// Выбор сниппетов для экспорта
 function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
-  return new Promise(resolve => {
+  return new Promise(resolve => { 
     const quickPick = vscode.window.createQuickPick<
       vscode.QuickPickItem & { snippet: Snippet }
     >();
@@ -85,7 +88,6 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
       tooltip: 'Выбрать все / Снять всё'
     };
     quickPick.buttons = [toggleAllBtn];
-
     quickPick.onDidTriggerButton(btn => {
       if (btn === toggleAllBtn) {
         quickPick.selectedItems = allSelected ? [] : quickPick.items;
@@ -93,6 +95,7 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
       }
     });
 
+    // Обработка выбора
     quickPick.onDidAccept(() => {
       const picked = quickPick.selectedItems.map(i => i.snippet);
       resolve(picked.length > 0 ? picked : undefined);
@@ -110,6 +113,7 @@ function SelectForExport (snippets: Snippet[]): Promise<Snippet[] | undefined> {
   });
 }
 
+// Конвертация в формат VS Code Snippet
 function toVsCodeSnippetFormat(
   snippets: Snippet[]
 ): Record<string, { prefix: string; body: string[]; description?: string; scope?: string }> {

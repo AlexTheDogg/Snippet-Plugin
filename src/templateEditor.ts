@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { saveSnippets, findSnippet, getAllSnippets } from './storage';
 import { Snippet } from './types';
 
+// Временные шаблоны: создаются при открытии редактора
 export interface PendingTemplate {
   name: string;
   originalName?: string;
@@ -24,6 +25,7 @@ export async function openTemplateEditor(
   template: PendingTemplate
 ): Promise<void> {
   while (true) {
+    // ── QuickPick: список параметров ───────────────────────────────
     const action = await vscode.window.showQuickPick(
       [
         { label: '$(text) Имя',           description: template.name },
@@ -43,6 +45,7 @@ export async function openTemplateEditor(
 
     if (!action) {return;}   // Esc — отмена
 
+    // сохранение шаблона без изменения тела
     if (action.label.startsWith('$(check)')) {
       if (!template.body || template.body.join('').trim() === '') {
         vscode.window.showErrorMessage(
@@ -53,7 +56,7 @@ export async function openTemplateEditor(
       await saveTemplate(template);
       return;
     }
-
+    // редактирование параметров
     if (action.label.startsWith('$(text)'))           {await editName(template);}
     else if (action.label.startsWith('$(info)'))      {await editDescription(template);}
     else if (action.label.startsWith('$(symbol-method)')) {await editLanguages(template);}
@@ -100,12 +103,13 @@ async function editPrefixes(t: PendingTemplate): Promise<void> {
     prompt: 'Префиксы через запятую (Enter — очистить)',
     value: t.prefix.join(', ')
   });
-  if (p === undefined) {return;}
+  if (p === undefined) {return;} // Esc — оставить как было
   t.prefix = p.split(',').map(x => x.trim()).filter(Boolean);
 }
 
 async function editLanguages(t: PendingTemplate): Promise<void> {
   const all = await vscode.languages.getLanguages();
+  // Предзаполняем галочки уже выбранными языками
   const items: vscode.QuickPickItem[] = [
     ...all.map(lang => ({ label: lang, picked: t.language.includes(lang) }))
   ];
@@ -113,29 +117,11 @@ async function editLanguages(t: PendingTemplate): Promise<void> {
     canPickMany: true,
     placeHolder: 'Отметьте языки'
   });
-  if (!picked) {return;}
-
-  if (picked.some(p => p.label.startsWith('$(add)'))) {
-    const custom = await vscode.window.showInputBox({
-      prompt: 'Языки через запятую',
-      validateInput: v => {
-        if (!v || !v.trim()) {return 'Введите хотя бы один';}
-        for (const l of v.split(',')) {
-          if (!all.includes(l.trim().toLowerCase())) {return `"${l.trim()}" — неизвестный язык`;}
-        }
-        return null;
-      }
-    });
-    if (custom) {
-      t.language = custom.split(',').map(x => x.trim()).filter(Boolean);
-      return;
-    }
-  }
-  t.language = picked.filter(p => !p.label.startsWith('$(add)')).map(p => p.label);
+  if (!picked) {return;} // Esc — оставить как было
+  t.language = picked.map(p => p.label);
 }
 
 async function editCategories(t: PendingTemplate): Promise<void> {
-  // ✅ Источник правды — settings.json + текущий шаблон
   const existing = getAllSnippets();
   const all = [...new Set([
     ...existing.flatMap(s => s.categories ?? []),
@@ -158,7 +144,7 @@ async function editCategories(t: PendingTemplate): Promise<void> {
   if (!picked) {return;}
 
   const createNew = picked.some(p => p.label.startsWith('$(add)'));
-
+  // Если пользователь выбрал «Создать новую», то открываем InputBox для ввода новой категории
   if (createNew) {
     const n = await vscode.window.showInputBox({
       prompt: 'Категории через запятую (добавятся к выбранным)',
@@ -166,7 +152,7 @@ async function editCategories(t: PendingTemplate): Promise<void> {
     });
     if (n === undefined) {return;}   // Esc — оставить как было
 
-    // ✅ Новые категории ДОБАВЛЯЮТСЯ к выбранным, а не заменяют их
+    // ✅ Новые категории добавляются к выбранным
     const selected = picked
       .filter(p => !p.label.startsWith('$(add)'))
       .map(p => p.label);
@@ -233,9 +219,10 @@ async function openBodyEditor(
   context: vscode.ExtensionContext,
   template: PendingTemplate
 ): Promise<void> {
+  // ── Создаём временный файл с телом шаблона ───────────────────────
   const tmpDir = context.globalStorageUri;
   await vscode.workspace.fs.createDirectory(tmpDir);
-
+  // ── Генерируем уникальное имя файла ─────────────────────────────
   const uri = vscode.Uri.joinPath(
     tmpDir,
     `template-body-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.txt`
@@ -245,7 +232,7 @@ async function openBodyEditor(
     uri,
     Buffer.from((template.body ?? []).join('\n'), 'utf8')
   );
-
+  // ── Открываем редактор рядом с текущим ───────────────────────────
   const doc = await vscode.workspace.openTextDocument(uri);
   const editor = await vscode.window.showTextDocument(doc, {
     preview: false,

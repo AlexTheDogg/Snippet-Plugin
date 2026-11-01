@@ -2,19 +2,21 @@ import * as vscode from 'vscode';
 import { getAllSnippets } from '../storage';
 import { openTemplateEditor, PendingTemplate } from '../templateEditor';
 
+// Показ статистики использования сниппетов
 export async function showStats(context: vscode.ExtensionContext): Promise<void> {
   const snippets = getAllSnippets();
   if (snippets.length === 0) {
     vscode.window.showInformationMessage('Нет шаблонов');
     return;
   }
-
+  // Сортируем сниппеты по количеству использования (по убыванию)
   const sorted = [...snippets].sort(
     (a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0)
   );
 
   const total = snippets.reduce((sum, s) => sum + (s.usageCount ?? 0), 0);
 
+  // Формируем элементы для QuickPick с информацией о каждом сниппете
   const items = sorted.map((s, i) => ({
     label: `${i + 1}. ${s.name}`,
     description: `${s.usageCount ?? 0}× использования`,
@@ -27,7 +29,8 @@ export async function showStats(context: vscode.ExtensionContext): Promise<void>
     placeHolder: `Всего вставок: ${total} · Шаблонов: ${snippets.length}`
   });
   if (!picked) {return;}
-
+  
+  // Если пользователь выбрал сниппет, открываем его в редакторе
   const s = snippets.find(x => x.name === picked.label.slice(3));
       if (s) {
         const template: PendingTemplate = {

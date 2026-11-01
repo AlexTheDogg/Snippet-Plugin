@@ -3,6 +3,7 @@ import { getAllSnippets, saveSnippets } from '../storage';
 import { validateSnippetArray } from '../validation';
 import { Snippet } from '../types';
 
+// Импорт сниппетов из JSON-файла
 export async function importSnippets(): Promise<void> {
   const uris = await vscode.window.showOpenDialog({
     canSelectMany: false,
@@ -10,7 +11,7 @@ export async function importSnippets(): Promise<void> {
     openLabel: 'Импортировать'
   });
   if (!uris || uris.length === 0) {return;}
-
+  // Чтение файла и парсинг JSON
   let raw: Uint8Array;
   try {
     raw = await vscode.workspace.fs.readFile(uris[0]);
@@ -26,9 +27,9 @@ export async function importSnippets(): Promise<void> {
     vscode.window.showErrorMessage('Файл не является валидным JSON');
     return;
   }
-
+  // Валидация структуры
   const result = validateSnippetArray(parsed);
-
+  // Если невалидно, показываем ошибки и прекращаем
   if (!result.valid) {
     const top = result.errors.slice(0, 5).join('\n');
     const more = result.errors.length > 5
@@ -46,14 +47,14 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
-  // 6. Классификация: новые / идентичные / конфликты
+  // Классификация: новые / идентичные / конфликты
   const existing = getAllSnippets();
   const existingByName = new Map(existing.map(s => [s.name, s]));
 
   const newOnes: Snippet[] = [];
   const conflicts: Snippet[] = [];
   const identical: Snippet[] = [];
-
+  
   for (const imp of imported) {
     const ex = existingByName.get(imp.name);
     if (!ex) {
@@ -77,6 +78,7 @@ export async function importSnippets(): Promise<void> {
     return;
   }
 
+  // Спрашиваем пользователя, что делать с конфликтами
   let overwrite = false;
   if (conflicts.length > 0) {
     const msg = [
@@ -99,7 +101,7 @@ export async function importSnippets(): Promise<void> {
     overwrite = choice === 'Перезаписать конфликты';
   }
 
-  // 9. Построение итогового массива
+  // Построение итогового массива
   const merged = new Map(existing.map(s => [s.name, s]));
 
   for (const imp of newOnes) {
@@ -116,7 +118,8 @@ export async function importSnippets(): Promise<void> {
       });
     }
   }
-
+  
+  // Сохраняем в settings.json
   const finalList = [...merged.values()];
   const willOverwrite = overwrite ? conflicts.length : 0;
 

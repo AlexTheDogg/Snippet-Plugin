@@ -1,22 +1,32 @@
 import { Snippet } from './types';
-
+ // Интерфейс для описания результата валидации
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
   snippets?: Snippet[];
 }
 
+
+// функция валидации поданого на вход объекта (parsed JSON) на соответствие формату VS Code-сниппетов
+
+// возвращает объект ValidationResult с полями valid (true/false), errors (массив ошибок) и snippets (массив валидных сниппетов)
+
+// пример использования: const result = validateSnippetArray(parsed); 
+//                       if (!result.valid) { console.log(result.errors); } 
+//                       else { console.log(result.snippets); }
 export function validateSnippetArray(data: unknown): ValidationResult {
   const errors: string[] = [];
   const snippets: Snippet[] = [];
-
+  // Проверка, что data — объект (не массив, не null)
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return {valid: false, errors: ["Неверный формат файла"], snippets: []};
   }
 
+  // Приведение к Record<string, unknown> для удобства работы с ключами и значениями
   const obj = data as Record<string, unknown>;
   const keys = Object.keys(obj);
 
+  // Если объект пустой, возвращаем валидный результат с пустым массивом сниппетов
   if (keys.length === 0) {
     return { valid: true, errors: [], snippets: [] };
   }
@@ -99,7 +109,7 @@ export function validateSnippetArray(data: unknown): ValidationResult {
         continue;
       }
     }
-
+    // добавляем валидный сниппет в поле snippets
     snippets.push({
       name,
       body,

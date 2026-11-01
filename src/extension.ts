@@ -10,6 +10,7 @@ import { importSnippets } from './commands/import';
 import { registerSnippetProviders, disposeSnippetProviders } from './snippetProvider';
 import { getAllSnippets, saveSnippets } from './storage';
 
+// Отслеживание использования сниппета: увеличиваем usageCount и обновляем lastUsed
 async function trackInsertion(name: string): Promise<void> {
   const snippets = getAllSnippets();
   const idx = snippets.findIndex(s => s.name === name);
@@ -38,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
   // 2. Первичная регистрация провайдеров
   void registerSnippetProviders(context);
 
-  // 3. Перерегистрация при изменении настроек — ключевой момент
+  // 3. Перерегистрация при изменении настроек
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('smartSnippet.snippets')) {
